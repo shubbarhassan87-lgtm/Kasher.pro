@@ -1,2 +1,0 @@
-# Kasher.pro
-index.html
