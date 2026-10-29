@@ -256,16 +256,6 @@
             font-size: 16px;
         }
 
-        .btn-mic {
-            background: #ff9500;
-            color: white;
-            border: none;
-            padding: 0 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
         #reader {
             width: 100%;
             border-radius: 16px;
@@ -624,12 +614,10 @@
 
             <div id="reader"></div>
 
+            <!-- اسم المادة أصبح مباشرة أسفل الباركود -->
             <div class="input-group">
-                <label>اسم المادة (البحث الصوتي الذكي 🎤 والتنسيق مع المخزن)</label>
-                <div style="display:flex; gap:8px;">
-                    <input type="text" id="item-name-input" list="inventory-datalist" class="input-field" placeholder="أدخل اسم المنتج أو انطق الاسم..." oninput="autoFillFromName()">
-                    <button class="btn-mic" onclick="startVoiceSearch()" title="بحث صوتي"><i class="fa-solid fa-microphone"></i></button>
-                </div>
+                <label>اسم المادة</label>
+                <input type="text" id="item-name-input" list="inventory-datalist" class="input-field" placeholder="أدخل اسم المنتج..." oninput="autoFillFromName()">
                 <datalist id="inventory-datalist"></datalist>
                 <div id="stock-hint" style="font-size:12px; margin-top:3px; font-weight:bold;"></div>
             </div>
@@ -807,7 +795,6 @@
         </div>
     </div>
 
-    <!-- 💰 شاشة الحسابات والمصاريف المحدثة -->
     <div id="accounts-screen">
         <div class="cash-box">
             <div style="font-size: 14px; opacity: 0.9;">رصيد الصندوق الحالي (كاش)</div>
@@ -847,7 +834,6 @@
         </div>
     </div>
 
-    <!-- 📊 شاشة التقارير والتقارير المالية المتقدمة المستعادة بالكامل -->
     <div id="reports-screen">
         <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
             <div style="background:linear-gradient(135deg, #007aff, #0056b3); color:white; border-radius:18px; padding:15px; display:flex; flex-direction:column; gap:4px;">
@@ -868,7 +854,6 @@
             </div>
         </div>
 
-        <!-- 📊 قسم التقارير المالية المتقدمة -->
         <div class="reports-card" style="border: 2px solid #af52de; background: linear-gradient(135deg, #faf5ff, #ffffff);">
             <h3 style="font-size: 16px; color: #af52de;"><i class="fa-solid fa-file-invoice-dollar"></i> التقارير المالية المتقدمة</h3>
             <p style="font-size: 12px; color: #8e8e93;">تقارير مفصلة (يومي، شهري، سنوي) للمبيعات، المشتريات، المصاريف، والأرباح.</p>
@@ -1221,38 +1206,6 @@
             reader.readAsText(file);
         }
 
-        function startVoiceSearch() {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert('متصفحك لا يدعم البحث الصوتي المباشر!');
-                return;
-            }
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'ar-IQ';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
-            recognition.onstart = function() {
-                document.getElementById('item-name-input').placeholder = "جاري الاستماع للصوت... 🎙️";
-            };
-
-            recognition.onresult = function(event) {
-                const speechResult = event.results[0][0].transcript;
-                document.getElementById('item-name-input').value = speechResult;
-                autoFillFromName();
-            };
-
-            recognition.onerror = function() {
-                alert('تعذر تمييز الصوت، يرجى المحاولة مرة أخرى.');
-            };
-
-            recognition.onend = function() {
-                document.getElementById('item-name-input').placeholder = "أدخل اسم المنتج أو انطق الاسم...";
-            };
-
-            recognition.start();
-        }
-
         function autoFillFromName() {
             const inputVal = document.getElementById('item-name-input').value.trim();
             const hint = document.getElementById('stock-hint');
@@ -1279,18 +1232,74 @@
             }
         }
 
+        // ⚡ التحقق من تكرار الباركود وإظهار خيار شراء كمية جديدة للمادة المسجلة مسبقاً
         function autoFillFromBarcode() {
             const rawCode = document.getElementById('barcode-input').value;
             if (!rawCode) return;
             const code = rawCode.trim();
             
             const item = inventory.find(i => i.barcode && String(i.barcode).trim().toLowerCase() === code.toLowerCase());
+            const hint = document.getElementById('stock-hint');
+
             if (item) {
                 document.getElementById('item-name-input').value = item.name;
                 document.getElementById('cost-price-input').value = item.cost;
                 document.getElementById('sell-price-input').value = item.sell;
-                autoFillFromName();
+                
+                hint.style.color = '#007aff';
+                hint.innerHTML = `✓ مادة مسجلة مسبقاً | الرصيد المتوفر: <b>${item.qty} قطعة</b>`;
+
+                // نافذة تأكيد شراء كمية جديدة عند تكرار مسح الباركود
+                if (!window._barcodePromptActive) {
+                    window._barcodePromptActive = true;
+                    setTimeout(() => {
+                        if (confirm(`المادة (${item.name}) مسجلة مسبقاً برصيد (${item.qty} قطعة).\nهل تم شراء أو إضافة كمية جديدة لهذه المادة؟`)) {
+                            openNewStockQuantityModal(item);
+                        }
+                        window._barcodePromptActive = false;
+                    }, 200);
+                }
+            } else {
+                hint.innerText = 'مادة جديدة غير مسجلة بالمخزن';
+                hint.style.color = '#ff9500';
             }
+        }
+
+        function openNewStockQuantityModal(item) {
+            document.getElementById('modal-body').innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>إضافة كمية جديدة للمادة: ${item.name}</h3>
+                    <i class="fa-solid fa-xmark" onclick="closeModal()" style="cursor:pointer; color:#8e8e93;"></i>
+                </div><hr style="border:0; border-top:1px solid #e5e5ea;">
+                <div class="summary-row"><span>الرصيد الحالي:</span> <b>${item.qty} قطعة</b></div>
+                <div class="input-group"><label>الكمية المضافة الجديدة</label><input type="number" id="added-qty-input" class="input-field" value="10"></div>
+                <div class="input-group"><label>سعر التكلفة الجديد (د.ع)</label><input type="number" id="added-cost-input" class="input-field" value="${item.cost}"></div>
+                <div class="input-group"><label>سعر البيع الجديد (د.ع)</label><input type="number" id="added-sell-input" class="input-field" value="${item.sell}"></div>
+                <button class="btn-save" onclick="confirmAddStockQuantity(${item.id})"><i class="fa-solid fa-plus-circle"></i> تحديث وزيادة المخزن</button>
+            `;
+            document.getElementById('app-modal').style.display = 'flex';
+        }
+
+        function confirmAddStockQuantity(itemId) {
+            const item = inventory.find(i => i.id === itemId);
+            if (!item) return;
+            const addQty = parseInt(document.getElementById('added-qty-input').value) || 0;
+            const newCost = parseFloat(document.getElementById('added-cost-input').value) || item.cost;
+            const newSell = parseFloat(document.getElementById('added-sell-input').value) || item.sell;
+
+            if (addQty <= 0) {
+                alert('يرجى إدخال كمية صحيحة!');
+                return;
+            }
+
+            item.qty += addQty;
+            item.cost = newCost;
+            item.sell = newSell;
+
+            logActivity('تحديث كمية مخزن', `تمت إضافة (${addQty}) قطعة للمادة (${item.name}) عبر تكرار الباركود`);
+            saveDataToStorage();
+            closeModal();
+            alert(`تم تحديث رصيد (${item.name}) ليصبح الإجمالي: ${item.qty} قطعة بنجاح!`);
         }
 
         function checkAuthStatus() {
@@ -1606,7 +1615,6 @@
             setTimeout(renderWeeklyChart, 150);
         }
 
-        // 📊 دالة عرض التقارير المالية المتقدمة (يومي، شهري، سنوي)
         function renderFinancialReports(tab) {
             currentFinTab = tab;
             const container = document.getElementById('financial-report-content');
@@ -2508,7 +2516,6 @@
             }, 100);
         }
 
-        // 📊 دالة عرض تبويبات الحسابات
         function renderAccountsTab(tab) {
             currentAccTab = tab;
             const list = document.getElementById('accounts-list');
