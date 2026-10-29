@@ -160,7 +160,6 @@
             display: none;
         }
 
-        /* 🎨 إعادة ترتيب وتنسيق الكارتات الرئيسية بلون وتصميم احترافي متناسق */
         .card-sales { background: linear-gradient(135deg, #007aff, #0056b3); }
         .card-purchases { background: linear-gradient(135deg, #34c759, #248a3d); }
         .card-inventory { background: linear-gradient(135deg, #5ac8fa, #0082be); }
@@ -200,17 +199,19 @@
             border-radius: 12px;
             padding: 4px;
             gap: 4px;
+            overflow-x: auto;
         }
 
         .type-toggle label {
             flex: 1;
             text-align: center;
-            padding: 8px 0;
-            font-size: 13px;
+            padding: 8px 6px;
+            font-size: 11px;
             font-weight: 700;
             border-radius: 9px;
             cursor: pointer;
             color: #3a3a3c;
+            white-space: nowrap;
             transition: all 0.2s ease;
         }
 
@@ -461,7 +462,6 @@
                 color: black !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                width: 80mm;
             }
             body * { visibility: hidden; }
             #printable-receipt-area, #printable-receipt-area * { 
@@ -477,21 +477,10 @@
                 background: white;
                 color: black;
             }
-            #printable-needs-area, #printable-needs-area * {
+            #printable-report-area, #printable-report-area * {
                 visibility: visible !important;
             }
-            #printable-needs-area {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                background: white;
-                color: black;
-            }
-            #printable-labels-area, #printable-labels-area * {
-                visibility: visible !important;
-            }
-            #printable-labels-area {
+            #printable-report-area {
                 position: absolute;
                 left: 0;
                 top: 0;
@@ -560,53 +549,44 @@
     </div>
 
     <div id="main-screen">
-        <!-- 📱 ترتيب الواجهة الرئيسية بشكل منظم واحترافي -->
         <main class="grid-container">
-            <!-- 1. المبيعات -->
             <div class="square-card card-sales" onclick="openScreen('sales')">
                 <i class="fa-solid fa-cart-shopping"></i>
                 <span>المبيعات</span>
             </div>
 
-            <!-- 2. المشتريات -->
             <div class="square-card card-purchases" onclick="openScreen('purchases')">
                 <i class="fa-solid fa-box-open"></i>
                 <span>المشتريات</span>
             </div>
 
-            <!-- 3. المخزن -->
             <div class="square-card card-inventory" onclick="openInventoryScreen()">
                 <div class="card-badge-count" id="home-low-stock-badge">0</div>
                 <i class="fa-solid fa-warehouse"></i>
                 <span>المخزن والباركود</span>
             </div>
 
-            <!-- 4. الاحتياجات وحركة البيع -->
             <div class="square-card card-needs" onclick="openNeedsScreen()">
                 <div class="card-badge-count" id="home-needs-badge" style="background:#ff2d55;">0</div>
                 <i class="fa-solid fa-clipboard-list"></i>
                 <span>الاحتياجات وحركة البيع</span>
             </div>
 
-            <!-- 5. الفواتير -->
             <div class="square-card card-invoices" onclick="openInvoicesScreen()">
                 <i class="fa-solid fa-file-invoice-dollar"></i>
                 <span>سجل الفواتير</span>
             </div>
 
-            <!-- 6. الحسابات والديون والمصاريف -->
             <div class="square-card card-accounts" onclick="openAccountsScreen()">
                 <i class="fa-solid fa-wallet"></i>
                 <span>الحسابات والمصاريف</span>
             </div>
 
-            <!-- 7. التقارير والنمو (عريض بالأفل) -->
             <div class="square-card card-reports" onclick="openReportsScreen()">
                 <i class="fa-solid fa-chart-line" style="font-size:36px; margin-bottom:0;"></i>
-                <span style="font-size:15px; font-weight:700;">التقارير ونمو المبيعات والرسوم</span>
+                <span style="font-size:15px; font-weight:700;">التقارير والنمو والتقارير المالية</span>
             </div>
 
-            <!-- 8. الإعدادات والتطبيق (عريض بالأسفل) -->
             <div class="square-card card-settings" onclick="openSettingsScreen()">
                 <i class="fa-solid fa-gear" style="font-size:36px; margin-bottom:0;"></i>
                 <span style="font-size:15px; font-weight:700;">الإعدادات والتطبيق (APK)</span>
@@ -741,7 +721,6 @@
         </div>
     </div>
 
-    <!-- 📋 شاشة الاحتياجات وحركة البيع -->
     <div id="needs-screen">
         <div style="background: linear-gradient(135deg, #ff2d55, #af1430); color: white; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 25px rgba(255, 45, 85, 0.25);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -828,6 +807,7 @@
         </div>
     </div>
 
+    <!-- 💰 شاشة الحسابات والمصاريف المحدثة -->
     <div id="accounts-screen">
         <div class="cash-box">
             <div style="font-size: 14px; opacity: 0.9;">رصيد الصندوق الحالي (كاش)</div>
@@ -841,13 +821,22 @@
         <div class="accounts-card">
             <div class="type-toggle">
                 <input type="radio" id="tab-profits" name="acc_tab" checked onclick="renderAccountsTab('profits')">
-                <label for="tab-profits"><i class="fa-solid fa-chart-pie"></i> حساب الأرباح</label>
+                <label for="tab-profits">تسوية الحسابات</label>
                 
+                <input type="radio" id="tab-daily" name="acc_tab" onclick="renderAccountsTab('daily')">
+                <label for="tab-daily">الحسابات اليومية</label>
+
+                <input type="radio" id="tab-monthly" name="acc_tab" onclick="renderAccountsTab('monthly')">
+                <label for="tab-monthly">الحسابات الشهرية</label>
+
+                <input type="radio" id="tab-yearly" name="acc_tab" onclick="renderAccountsTab('yearly')">
+                <label for="tab-yearly">الحسابات السنوية</label>
+
                 <input type="radio" id="tab-expenses" name="acc_tab" onclick="renderAccountsTab('expenses')">
-                <label for="tab-expenses"><i class="fa-solid fa-money-bill-transfer"></i> المصاريف اليومية</label>
+                <label for="tab-expenses">المصاريف</label>
 
                 <input type="radio" id="tab-cust" name="acc_tab" onclick="renderAccountsTab('customers')">
-                <label for="tab-cust"><i class="fa-solid fa-users"></i> حسابات الديون</label>
+                <label for="tab-cust">ديون الزبائن</label>
             </div>
 
             <button class="btn-add" id="acc-add-btn" onclick="openAddAccountItemModal()" style="background: #ff9500; box-shadow:0 4px 12px rgba(255,149,0,0.25);">
@@ -858,6 +847,7 @@
         </div>
     </div>
 
+    <!-- 📊 شاشة التقارير والتقارير المالية المتقدمة المستعادة بالكامل -->
     <div id="reports-screen">
         <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
             <div style="background:linear-gradient(135deg, #007aff, #0056b3); color:white; border-radius:18px; padding:15px; display:flex; flex-direction:column; gap:4px;">
@@ -878,15 +868,23 @@
             </div>
         </div>
 
-        <div class="report-summary-box" id="report-summary-area" style="background: linear-gradient(135deg, #af52de, #7928a3); color: white; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 25px rgba(175, 82, 222, 0.25);">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size: 14px; opacity: 0.9;">ملخص الأرباح والأداء</span>
-                <button onclick="exportReportPDF()" style="background: #ffffff; border:none; color:#7928a3; padding:6px 12px; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:5px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                    <i class="fa-solid fa-file-pdf"></i> تصدير التقرير PDF
-                </button>
+        <!-- 📊 قسم التقارير المالية المتقدمة -->
+        <div class="reports-card" style="border: 2px solid #af52de; background: linear-gradient(135deg, #faf5ff, #ffffff);">
+            <h3 style="font-size: 16px; color: #af52de;"><i class="fa-solid fa-file-invoice-dollar"></i> التقارير المالية المتقدمة</h3>
+            <p style="font-size: 12px; color: #8e8e93;">تقارير مفصلة (يومي، شهري، سنوي) للمبيعات، المشتريات، المصاريف، والأرباح.</p>
+            
+            <div class="type-toggle" style="background: #e9d8fd;">
+                <input type="radio" id="fin-tab-daily" name="fin_rep_tab" checked onclick="renderFinancialReports('daily')">
+                <label for="fin-tab-daily">تقرير يومي</label>
+
+                <input type="radio" id="fin-tab-monthly" name="fin_rep_tab" onclick="renderFinancialReports('monthly')">
+                <label for="fin-tab-monthly">تقرير شهري</label>
+
+                <input type="radio" id="fin-tab-yearly" name="fin_rep_tab" onclick="renderFinancialReports('yearly')">
+                <label for="fin-tab-yearly">تقرير سنوي</label>
             </div>
-            <div style="font-size: 26px; font-weight: 800;" id="net-profit-display">0 د.ع</div>
-            <div style="font-size: 12px; opacity: 0.85;">(صافي الأرباح بعد خصم التكلفة والمصاريف)</div>
+
+            <div id="financial-report-content" style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;"></div>
         </div>
 
         <div class="reports-card">
@@ -1000,6 +998,7 @@
         let currentPayType = 'cash';
         let currentAccTab = 'profits';
         let currentRepTab = 'activities';
+        let currentFinTab = 'daily';
         let html5QrCode = null;
         let myWeeklyChart = null;
 
@@ -1549,7 +1548,7 @@
             `).join('');
 
             document.getElementById('modal-body').innerHTML = `
-                <div id="printable-needs-area" style="padding:10px;">
+                <div id="printable-report-area" style="padding:10px;">
                     <div style="text-align:center; border-bottom:2px dashed #000; padding-bottom:8px; margin-bottom:8px;">
                         <h3 style="font-size:16px;">${storeData.name}</h3>
                         <div style="font-size:12px; font-weight:bold;">كشف الاحتياجات وحركة البيع</div>
@@ -1599,11 +1598,170 @@
             hideAllScreens();
             document.getElementById('reports-screen').style.display = 'flex';
             document.getElementById('back-btn').style.display = 'block';
-            document.getElementById('page-title').querySelector('span').innerText = 'التقارير ونمو المبيعات';
+            document.getElementById('page-title').querySelector('span').innerText = 'التقارير والنمو والتقارير المالية';
             document.getElementById('report-date-filter').value = new Date().toISOString().split('T')[0];
             updateSmartDashboard();
+            renderFinancialReports(currentFinTab);
             renderReportsTab(currentRepTab);
             setTimeout(renderWeeklyChart, 150);
+        }
+
+        // 📊 دالة عرض التقارير المالية المتقدمة (يومي، شهري، سنوي)
+        function renderFinancialReports(tab) {
+            currentFinTab = tab;
+            const container = document.getElementById('financial-report-content');
+            container.innerHTML = '';
+
+            let now = new Date();
+            let todayStr = now.toISOString().split('T')[0];
+            let currentYear = now.getFullYear();
+            let currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+            let currentYearMonth = `${currentYear}-${currentMonth}`;
+
+            if (tab === 'daily') {
+                let daySales = invoicesList.filter(i => i.type === 'sales' && i.date.startsWith(todayStr)).reduce((s, i) => s + i.amount, 0);
+                let dayPurchases = invoicesList.filter(i => i.type === 'purchases' && i.date.startsWith(todayStr)).reduce((s, i) => s + i.amount, 0);
+                let dayExpenses = expensesList.filter(e => e.date === todayStr).reduce((s, e) => s + e.amount, 0);
+                let dayProfit = daySales - dayPurchases - dayExpenses;
+
+                container.innerHTML = `
+                    <div id="printable-fin-report" style="background:#ffffff; border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="text-align:center; border-bottom:1px dashed #ddd; padding-bottom:6px; margin-bottom:4px;">
+                            <h4 style="color:#af52de; font-size:15px;">📋 التقرير المالي اليومي (${todayStr})</h4>
+                        </div>
+                        <div class="summary-row"><span>إجمالي المبيعات:</span> <b style="color:#007aff;">${daySales.toLocaleString()} د.ع</b></div>
+                        <div class="summary-row"><span>إجمالي المشتريات:</span> <b style="color:#34c759;">${dayPurchases.toLocaleString()} د.ع</b></div>
+                        <div class="summary-row"><span>المصاريف اليومية:</span> <b style="color:#ff9500;">${dayExpenses.toLocaleString()} د.ع</b></div>
+                        <div class="summary-row total-row"><span>صافي الأرباح اليومية:</span> <b style="color:${dayProfit >= 0 ? '#34c759' : '#ff3b30'};">${dayProfit.toLocaleString()} د.ع</b></div>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:5px;">
+                        <button class="btn-save" style="background:#007aff; font-size:12px; flex:1;" onclick="printFinancialReportModal('التقرير المالي اليومي', document.getElementById('printable-fin-report').innerHTML)">
+                            <i class="fa-solid fa-print"></i> طباعة التقرير
+                        </button>
+                        <button class="btn-save" style="background:#ff3b30; font-size:12px; flex:1;" onclick="exportFinancialPDF('Daily_Financial_Report')">
+                            <i class="fa-solid fa-file-pdf"></i> تصدير PDF
+                        </button>
+                    </div>
+                `;
+            } else if (tab === 'monthly') {
+                let monthSales = invoicesList.filter(i => i.type === 'sales' && i.date.startsWith(currentYearMonth)).reduce((s, i) => s + i.amount, 0);
+                let monthPurchases = invoicesList.filter(i => i.type === 'purchases' && i.date.startsWith(currentYearMonth)).reduce((s, i) => s + i.amount, 0);
+                let monthExpenses = expensesList.filter(e => e.date.startsWith(currentYearMonth)).reduce((s, e) => s + e.amount, 0);
+                let monthProfit = monthSales - monthPurchases - monthExpenses;
+
+                container.innerHTML = `
+                    <div id="printable-fin-report" style="background:#ffffff; border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="text-align:center; border-bottom:1px dashed #ddd; padding-bottom:6px; margin-bottom:4px;">
+                            <h4 style="color:#af52de; font-size:15px;">📋 التقرير المالي الشهري (شهر ${currentYearMonth})</h4>
+                        </div>
+                        <div class="summary-row"><span>إجمالي المبيعات الشهرية:</span> <b style="color:#007aff;">${monthSales.toLocaleString()} د.ع</b></div>
+                        <div class="summary-row"><span>إجمالي المشتريات الشهرية:</span> <b style="color:#34c759;">${monthPurchases.toLocaleString()} د.ع</b></div>
+                        <div class="summary-row"><span>إجمالي المصاريف الشهرية:</span> <b style="color:#ff9500;">${monthExpenses.toLocaleString()} د.ع</b></div>
+                        <div class="summary-row total-row"><span>صافي الأرباح الشهرية:</span> <b style="color:${monthProfit >= 0 ? '#34c759' : '#ff3b30'};">${monthProfit.toLocaleString()} د.ع</b></div>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:5px;">
+                        <button class="btn-save" style="background:#007aff; font-size:12px; flex:1;" onclick="printFinancialReportModal('التقرير المالي الشهري', document.getElementById('printable-fin-report').innerHTML)">
+                            <i class="fa-solid fa-print"></i> طباعة التقرير
+                        </button>
+                        <button class="btn-save" style="background:#ff3b30; font-size:12px; flex:1;" onclick="exportFinancialPDF('Monthly_Financial_Report')">
+                            <i class="fa-solid fa-file-pdf"></i> تصدير PDF
+                        </button>
+                    </div>
+                `;
+            } else if (tab === 'yearly') {
+                let yearSales = invoicesList.filter(i => i.type === 'sales' && i.date.startsWith(String(currentYear))).reduce((s, i) => s + i.amount, 0);
+                let yearPurchases = invoicesList.filter(i => i.type === 'purchases' && i.date.startsWith(String(currentYear))).reduce((s, i) => s + i.amount, 0);
+                let yearExpenses = expensesList.filter(e => e.date.startsWith(String(currentYear))).reduce((s, e) => s + e.amount, 0);
+                let yearProfit = yearSales - yearPurchases - yearExpenses;
+
+                let monthlyBreakdownHtml = '';
+                for (let m = 1; m <= 12; m++) {
+                    let mStr = String(m).padStart(2, '0');
+                    let ymPrefix = `${currentYear}-${mStr}`;
+                    let mSales = invoicesList.filter(i => i.type === 'sales' && i.date.startsWith(ymPrefix)).reduce((s, i) => s + i.amount, 0);
+                    let mPurchases = invoicesList.filter(i => i.type === 'purchases' && i.date.startsWith(ymPrefix)).reduce((s, i) => s + i.amount, 0);
+                    let mExp = expensesList.filter(e => e.date.startsWith(ymPrefix)).reduce((s, e) => s + e.amount, 0);
+                    let mProf = mSales - mPurchases - mExp;
+
+                    monthlyBreakdownHtml += `
+                        <tr style="font-size:11px; border-bottom:1px solid #f2f2f7;">
+                            <td style="padding:6px; font-weight:bold;">شهر ${mStr}</td>
+                            <td style="padding:6px; color:#007aff;">${mSales.toLocaleString()}</td>
+                            <td style="padding:6px; color:#34c759;">${mPurchases.toLocaleString()}</td>
+                            <td style="padding:6px; color:#ff9500;">${mExp.toLocaleString()}</td>
+                            <td style="padding:6px; font-weight:bold; color:${mProf>=0?'#34c759':'#ff3b30'};">${mProf.toLocaleString()}</td>
+                        </tr>
+                    `;
+                }
+
+                container.innerHTML = `
+                    <div id="printable-fin-report" style="background:#ffffff; border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:10px;">
+                        <div style="text-align:center; border-bottom:1px dashed #ddd; padding-bottom:6px;">
+                            <h4 style="color:#af52de; font-size:15px;">📋 التقرير المالي السنوي (سنة ${currentYear})</h4>
+                        </div>
+                        <div class="summary-row"><span>إجمالي مبيعات العام:</span> <b style="color:#007aff;">${yearSales.toLocaleString()} د.ع</b></div>
+                        <div class="summary-row"><span>إجمالي مشتريات العام:</span> <b style="color:#34c759;">${yearPurchases.toLocaleString()} د.ع</b></div>
+                        <div class="summary-row"><span>إجمالي مصاريف العام:</span> <b style="color:#ff9500;">${yearExpenses.toLocaleString()} د.ع</b></div>
+                        <div class="summary-row total-row"><span>صافي أرباح العام:</span> <b style="color:${yearProfit >= 0 ? '#34c759' : '#ff3b30'};">${yearProfit.toLocaleString()} د.ع</b></div>
+                        
+                        <h5 style="font-size:12px; color:#3a3a3c; margin-top:5px;">تفاصيل الشهور لكل شهر في السنة:</h5>
+                        <div style="overflow-x:auto;">
+                            <table style="width:100%; border-collapse:collapse; text-align:right;">
+                                <thead>
+                                    <tr style="background:#f8f8f8; color:#8e8e93; font-size:11px;">
+                                        <th style="padding:6px;">الشهر</th>
+                                        <th style="padding:6px;">مبيعات</th>
+                                        <th style="padding:6px;">مشتريات</th>
+                                        <th style="padding:6px;">مصاريف</th>
+                                        <th style="padding:6px;">الربح</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${monthlyBreakdownHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:5px;">
+                        <button class="btn-save" style="background:#007aff; font-size:12px; flex:1;" onclick="printFinancialReportModal('التقرير المالي السنوي', document.getElementById('printable-fin-report').innerHTML)">
+                            <i class="fa-solid fa-print"></i> طباعة التقرير
+                        </button>
+                        <button class="btn-save" style="background:#ff3b30; font-size:12px; flex:1;" onclick="exportFinancialPDF('Yearly_Financial_Report')">
+                            <i class="fa-solid fa-file-pdf"></i> تصدير PDF
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function printFinancialReportModal(title, htmlContent) {
+            document.getElementById('modal-body').innerHTML = `
+                <div id="printable-report-area" style="padding:15px;">
+                    <div style="text-align:center; border-bottom:2px dashed #000; padding-bottom:8px; margin-bottom:10px;">
+                        <h3 style="font-size:18px;">${storeData.name}</h3>
+                        <div style="font-size:13px; font-weight:bold;">${title}</div>
+                        <div style="font-size:11px;">تاريخ الإصدار: ${getFormattedTodayDate()}</div>
+                    </div>
+                    ${htmlContent}
+                </div>
+                <div class="no-print" style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="btn-save" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة الآن</button>
+                    <button class="btn-save" style="background:#8e8e93;" onclick="closeModal()">إغلاق</button>
+                </div>
+            `;
+            document.getElementById('app-modal').style.display = 'flex';
+        }
+
+        function exportFinancialPDF(filenamePrefix) {
+            const element = document.getElementById('printable-fin-report');
+            const opt = {
+                margin:       0.3,
+                filename:     `${filenamePrefix}_${new Date().toISOString().split('T')[0]}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
         }
 
         function openSettingsScreen() {
@@ -2330,7 +2488,7 @@
             });
 
             document.getElementById('modal-body').innerHTML = `
-                <div id="printable-labels-area" style="padding:10px; text-align:center;">
+                <div id="printable-report-area" style="padding:10px; text-align:center;">
                     <h3 class="no-print" style="margin-bottom:10px;">معاينة ملصقات الباركود للطباعة</h3>
                     <div>${labelsHtml}</div>
                 </div>
@@ -2350,6 +2508,7 @@
             }, 100);
         }
 
+        // 📊 دالة عرض تبويبات الحسابات
         function renderAccountsTab(tab) {
             currentAccTab = tab;
             const list = document.getElementById('accounts-list');
@@ -2361,19 +2520,87 @@
             let totalExp = expensesList.reduce((s, e) => s + e.amount, 0);
             let netProfit = totalSales - totalPurchases - totalExp;
 
+            let now = new Date();
+            let todayStr = now.toISOString().split('T')[0];
+            let currentYear = now.getFullYear();
+            let currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+            let currentYearMonth = `${currentYear}-${currentMonth}`;
+
             if (tab === 'profits') {
+                let monthSales = invoicesList.filter(i => i.type === 'sales' && i.date.startsWith(currentYearMonth)).reduce((s, i) => s + i.amount, 0);
+                let monthPurchases = invoicesList.filter(i => i.type === 'purchases' && i.date.startsWith(currentYearMonth)).reduce((s, i) => s + i.amount, 0);
+                let monthExp = expensesList.filter(e => e.date.startsWith(currentYearMonth)).reduce((s, e) => s + e.amount, 0);
+                let monthlySettlementMinusExpenses = monthSales - monthPurchases - monthExp;
+
                 addBtn.style.display = 'none';
                 list.innerHTML = `
                     <div class="report-stat-card" style="background:#eefdf1; border-color:#34c759;">
                         <div class="item-info">
-                            <span class="item-name" style="color:#248a3d;"><i class="fa-solid fa-calculator"></i> صافي الأرباح المحققة</span>
-                            <span class="item-details">بعد خصم كلفة المشتريات والمصاريف</span>
+                            <span class="item-name" style="color:#248a3d;"><i class="fa-solid fa-calculator"></i> تسوية الحسابات الشهرية مطروح منها المصاريف</span>
+                            <span class="item-details">مبيعات الشهر - مشتريات الشهر - مصاريف الشهر</span>
                         </div>
-                        <span style="font-weight:bold; color:#34c759; font-size:18px;">${netProfit.toLocaleString()} د.ع</span>
+                        <span style="font-weight:bold; color:#34c759; font-size:18px;">${monthlySettlementMinusExpenses.toLocaleString()} د.ع</span>
                     </div>
-                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>إجمالي المبيعات:</span> <b style="color:#007aff;">${totalSales.toLocaleString()} د.ع</b></div>
-                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>(-) إجمالي المشتريات والتكلفة:</span> <b style="color:#ff3b30;">-${totalPurchases.toLocaleString()} د.ع</b></div>
-                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>(-) إجمالي المصاريف اليومية:</span> <b style="color:#ff9500;">-${totalExp.toLocaleString()} د.ع</b></div>
+                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>مبيعات الشهر (${currentYearMonth}):</span> <b style="color:#007aff;">${monthSales.toLocaleString()} د.ع</b></div>
+                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>(-) مشتريات الشهر:</span> <b style="color:#ff3b30;">-${monthPurchases.toLocaleString()} د.ع</b></div>
+                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>(-) مصاريف الشهر:</span> <b style="color:#ff9500;">-${monthExp.toLocaleString()} د.ع</b></div>
+                `;
+            } else if (tab === 'daily') {
+                addBtn.style.display = 'none';
+                let daySales = invoicesList.filter(i => i.type === 'sales' && i.date.startsWith(todayStr)).reduce((s, i) => s + i.amount, 0);
+                let dayPurchases = invoicesList.filter(i => i.type === 'purchases' && i.date.startsWith(todayStr)).reduce((s, i) => s + i.amount, 0);
+                let dayExp = expensesList.filter(e => e.date === todayStr).reduce((s, e) => s + e.amount, 0);
+                let dayNet = daySales - dayPurchases - dayExp;
+
+                list.innerHTML = `
+                    <div class="report-stat-card" style="background:#eef2ff; border-color:#007aff;">
+                        <div class="item-info">
+                            <span class="item-name" style="color:#0056b3;"><i class="fa-solid fa-calendar-day"></i> الحسابات اليومية (${todayStr})</span>
+                            <span class="item-details">ملخص مبيعات ومشتريات ومصاريف اليوم</span>
+                        </div>
+                        <span style="font-weight:bold; color:#007aff; font-size:16px;">${dayNet.toLocaleString()} د.ع</span>
+                    </div>
+                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>المبيعات اليومية:</span> <b style="color:#007aff;">${daySales.toLocaleString()} د.ع</b></div>
+                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>المشتريات اليومية:</span> <b style="color:#34c759;">${dayPurchases.toLocaleString()} د.ع</b></div>
+                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>المصاريف اليومية:</span> <b style="color:#ff9500;">${dayExp.toLocaleString()} د.ع</b></div>
+                `;
+            } else if (tab === 'monthly') {
+                addBtn.style.display = 'none';
+                let monthSales = invoicesList.filter(i => i.type === 'sales' && i.date.startsWith(currentYearMonth)).reduce((s, i) => s + i.amount, 0);
+                let monthPurchases = invoicesList.filter(i => i.type === 'purchases' && i.date.startsWith(currentYearMonth)).reduce((s, i) => s + i.amount, 0);
+                let monthExp = expensesList.filter(e => e.date.startsWith(currentYearMonth)).reduce((s, e) => s + e.amount, 0);
+                let monthNet = monthSales - monthPurchases - monthExp;
+
+                list.innerHTML = `
+                    <div class="report-stat-card" style="background:#fffbeb; border-color:#d97706;">
+                        <div class="item-info">
+                            <span class="item-name" style="color:#b45309;"><i class="fa-solid fa-calendar-days"></i> الحسابات الشهرية (شهر ${currentYearMonth})</span>
+                            <span class="item-details">ملخص الشهر الحالي</span>
+                        </div>
+                        <span style="font-weight:bold; color:#d97706; font-size:16px;">${monthNet.toLocaleString()} د.ع</span>
+                    </div>
+                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>إجمالي مبيعات الشهر:</span> <b style="color:#007aff;">${monthSales.toLocaleString()} د.ع</b></div>
+                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>إجمالي مشتريات الشهر:</span> <b style="color:#34c759;">${monthPurchases.toLocaleString()} د.ع</b></div>
+                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>إجمالي مصاريف الشهر:</span> <b style="color:#ff9500;">${monthExp.toLocaleString()} د.ع</b></div>
+                `;
+            } else if (tab === 'yearly') {
+                addBtn.style.display = 'none';
+                let yearSales = invoicesList.filter(i => i.type === 'sales' && i.date.startsWith(String(currentYear))).reduce((s, i) => s + i.amount, 0);
+                let yearPurchases = invoicesList.filter(i => i.type === 'purchases' && i.date.startsWith(String(currentYear))).reduce((s, i) => s + i.amount, 0);
+                let yearExp = expensesList.filter(e => e.date.startsWith(String(currentYear))).reduce((s, e) => s + e.amount, 0);
+                let yearNet = yearSales - yearPurchases - yearExp;
+
+                list.innerHTML = `
+                    <div class="report-stat-card" style="background:#faf5ff; border-color:#af52de;">
+                        <div class="item-info">
+                            <span class="item-name" style="color:#7928a3;"><i class="fa-solid fa-calendar"></i> الحسابات السنوية (سنة ${currentYear})</span>
+                            <span class="item-details">ملخص السنة كاملة</span>
+                        </div>
+                        <span style="font-weight:bold; color:#af52de; font-size:16px;">${yearNet.toLocaleString()} د.ع</span>
+                    </div>
+                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>إجمالي مبيعات السنة:</span> <b style="color:#007aff;">${yearSales.toLocaleString()} د.ع</b></div>
+                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>إجمالي مشتريات السنة:</span> <b style="color:#34c759;">${yearPurchases.toLocaleString()} د.ع</b></div>
+                    <div class="summary-row" style="padding: 10px 14px; background:#f8f8fa; border-radius:12px;"><span>إجمالي مصاريف السنة:</span> <b style="color:#ff9500;">${yearExp.toLocaleString()} د.ع</b></div>
                 `;
             } else if (tab === 'expenses') {
                 addBtn.style.display = 'flex';
@@ -2572,7 +2799,6 @@
             let totalExp = expensesList.reduce((s, e) => s + e.amount, 0);
             let netProfit = totalSales - totalPurchases - totalExp;
 
-            document.getElementById('net-profit-display').innerText = netProfit.toLocaleString() + ' د.ع';
             updateSmartDashboard();
 
             if (currentRepTab === 'activities') {
@@ -2630,18 +2856,6 @@
                     `;
                 });
             }
-        }
-
-        function exportReportPDF() {
-            const element = document.getElementById('reports-screen');
-            const opt = {
-                margin:       0.3,
-                filename:     `Financial_Report_${new Date().toISOString().split('T')[0]}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
         }
 
         function openAddAccountItemModal() {
@@ -2839,10 +3053,6 @@
                     readerDiv.style.display = 'none';
                 });
             }
-        }
-
-        function stopCameraData() {
-            stopCamera();
         }
 
         function stopCamera() {
