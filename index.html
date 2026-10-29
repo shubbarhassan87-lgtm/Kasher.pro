@@ -614,7 +614,6 @@
 
             <div id="reader"></div>
 
-            <!-- اسم المادة أصبح مباشرة أسفل الباركود -->
             <div class="input-group">
                 <label>اسم المادة</label>
                 <input type="text" id="item-name-input" list="inventory-datalist" class="input-field" placeholder="أدخل اسم المنتج..." oninput="autoFillFromName()">
@@ -995,6 +994,9 @@
         let firebaseConfigUrl = '';
         let firebaseApp = null;
 
+        let lastScannedCode = "";
+        let lastScanTime = 0;
+
         let storeData = {
             name: 'كاشير بلس',
             logo: '',
@@ -1232,7 +1234,6 @@
             }
         }
 
-        // ⚡ التحقق من تكرار الباركود وإظهار خيار شراء كمية جديدة للمادة المسجلة مسبقاً
         function autoFillFromBarcode() {
             const rawCode = document.getElementById('barcode-input').value;
             if (!rawCode) return;
@@ -1248,58 +1249,10 @@
                 
                 hint.style.color = '#007aff';
                 hint.innerHTML = `✓ مادة مسجلة مسبقاً | الرصيد المتوفر: <b>${item.qty} قطعة</b>`;
-
-                // نافذة تأكيد شراء كمية جديدة عند تكرار مسح الباركود
-                if (!window._barcodePromptActive) {
-                    window._barcodePromptActive = true;
-                    setTimeout(() => {
-                        if (confirm(`المادة (${item.name}) مسجلة مسبقاً برصيد (${item.qty} قطعة).\nهل تم شراء أو إضافة كمية جديدة لهذه المادة؟`)) {
-                            openNewStockQuantityModal(item);
-                        }
-                        window._barcodePromptActive = false;
-                    }, 200);
-                }
             } else {
                 hint.innerText = 'مادة جديدة غير مسجلة بالمخزن';
                 hint.style.color = '#ff9500';
             }
-        }
-
-        function openNewStockQuantityModal(item) {
-            document.getElementById('modal-body').innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3>إضافة كمية جديدة للمادة: ${item.name}</h3>
-                    <i class="fa-solid fa-xmark" onclick="closeModal()" style="cursor:pointer; color:#8e8e93;"></i>
-                </div><hr style="border:0; border-top:1px solid #e5e5ea;">
-                <div class="summary-row"><span>الرصيد الحالي:</span> <b>${item.qty} قطعة</b></div>
-                <div class="input-group"><label>الكمية المضافة الجديدة</label><input type="number" id="added-qty-input" class="input-field" value="10"></div>
-                <div class="input-group"><label>سعر التكلفة الجديد (د.ع)</label><input type="number" id="added-cost-input" class="input-field" value="${item.cost}"></div>
-                <div class="input-group"><label>سعر البيع الجديد (د.ع)</label><input type="number" id="added-sell-input" class="input-field" value="${item.sell}"></div>
-                <button class="btn-save" onclick="confirmAddStockQuantity(${item.id})"><i class="fa-solid fa-plus-circle"></i> تحديث وزيادة المخزن</button>
-            `;
-            document.getElementById('app-modal').style.display = 'flex';
-        }
-
-        function confirmAddStockQuantity(itemId) {
-            const item = inventory.find(i => i.id === itemId);
-            if (!item) return;
-            const addQty = parseInt(document.getElementById('added-qty-input').value) || 0;
-            const newCost = parseFloat(document.getElementById('added-cost-input').value) || item.cost;
-            const newSell = parseFloat(document.getElementById('added-sell-input').value) || item.sell;
-
-            if (addQty <= 0) {
-                alert('يرجى إدخال كمية صحيحة!');
-                return;
-            }
-
-            item.qty += addQty;
-            item.cost = newCost;
-            item.sell = newSell;
-
-            logActivity('تحديث كمية مخزن', `تمت إضافة (${addQty}) قطعة للمادة (${item.name}) عبر تكرار الباركود`);
-            saveDataToStorage();
-            closeModal();
-            alert(`تم تحديث رصيد (${item.name}) ليصبح الإجمالي: ${item.qty} قطعة بنجاح!`);
         }
 
         function checkAuthStatus() {
@@ -1517,6 +1470,7 @@
             });
         }
 
+        // 📲 إرسال كشف الاحتياجات كاملاً عبر الواتساب بدون أي بتر
         function getNeedsReportText() {
             const safetyPct = parseInt(document.getElementById('safety-percent-select').value) || 30;
             let needsItems = inventory.filter(item => {
@@ -1524,21 +1478,21 @@
                 return item.qty <= threshold;
             });
 
-            let text = `*${storeData.name}%0A📋 كشف الاحتياجات وحركة البيع*%0Aمعيار حركة البيع: ${safetyPct}%%0A-----------------------------------%0A`;
+            let text = `*${storeData.name}*\n📋 *كشف الاحتياجات وحركة البيع*\nمعيار حركة البيع: ${safetyPct}%\n-----------------------------------\n`;
             if (needsItems.length === 0) {
-                text += `لا توجد مواد ناقصة حالياً.%0A`;
+                text += `لا توجد مواد ناقصة حالياً.\n`;
             } else {
                 needsItems.forEach((it, i) => {
-                    text += `${i+1}. *${it.name}* (المتوفر: ${it.qty} قطعة)%0A`;
+                    text += `${i+1}. *${it.name}* (المتوفر: ${it.qty} قطعة)\n`;
                 });
             }
-            text += `-----------------------------------%0Aيرجى تجهيز الطلبية بأسرع وقت.`;
+            text += `-----------------------------------\nيرجى تجهيز الطلبية بأسرع وقت.`;
             return text;
         }
 
         function sendNeedsWhatsApp() {
             let text = getNeedsReportText();
-            window.open(`https://wa.me/?text=${text}`, '_blank');
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         }
 
         function printNeedsReport() {
@@ -2205,6 +2159,7 @@
             });
         }
 
+        // 📲 إرسال الفاتورة بالكامل للواتساب بدون أي بتر مع ترميز كامل
         function showInvoiceDetails(invId) {
             const inv = invoicesList.find(i => i.id === invId);
             if (!inv) return;
@@ -2219,11 +2174,24 @@
                 </tr>
             `).join('');
 
-            let waText = `*${storeData.name}*%0Aفاتورة رقم: ${inv.id}%0Aالزبون: ${inv.customerName || 'زبون عام'}%0Aالتاريخ: ${inv.date}%0A-------------------%0A`;
-            inv.items.forEach(it => {
-                waText += `${it.name} (×${it.qty}) - ${it.total.toLocaleString()} د.ع%0A`;
-            });
-            waText += `-------------------%0A*المجموع النهائي: ${inv.amount.toLocaleString()} د.ع*%0Aشكراً لتعاملكم معنا!`;
+            let waText = `*${storeData.name}*\n` +
+                         `فاتورة رقم: ${inv.id}\n` +
+                         `الزبون: ${inv.customerName || 'زبون عام'}\n` +
+                         `التاريخ: ${inv.date}\n` +
+                         `-----------------------------------\n`;
+            
+            if (inv.items) {
+                inv.items.forEach(it => {
+                    waText += `• ${it.name} (×${it.qty}) = ${it.total.toLocaleString()} د.ع\n`;
+                });
+            }
+
+            waText += `-----------------------------------\n` +
+                      `الخصم: ${(inv.discount || 0).toLocaleString()} د.ع\n` +
+                      `*المجموع النهائي: ${inv.amount.toLocaleString()} د.ع*\n` +
+                      `شكراً لتعاملكم معنا!`;
+
+            let waUrl = `https://wa.me/?text=${encodeURIComponent(waText)}`;
 
             document.getElementById('modal-body').innerHTML = `
                 <div id="printable-receipt-area">
@@ -2276,7 +2244,7 @@
                         <button class="btn-save" onclick="window.print()" style="background:#007aff; flex:1;">
                             <i class="fa-solid fa-print"></i> طباعة حرارية
                         </button>
-                        <a href="https://wa.me/?text=${waText}" target="_blank" class="btn-save" style="background:#25d366; text-decoration:none; text-align:center; flex:1; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        <a href="${waUrl}" target="_blank" class="btn-save" style="background:#25d366; text-decoration:none; text-align:center; flex:1; display:flex; align-items:center; justify-content:center; gap:6px;">
                             <i class="fa-brands fa-whatsapp"></i> إرسال واتساب
                         </a>
                     </div>
@@ -3008,6 +2976,7 @@
             alert('تم تحديث رصيد الصندوق بنجاح!');
         }
 
+        // ⚡ تعديل الكاميرا وقارئ الباركود ليستمر في العمل بدون أن ينطفئ بعد القراءة
         function toggleContinuousCamera() {
             const readerDiv = document.getElementById('reader');
             if (readerDiv.style.display === 'block') {
@@ -3019,8 +2988,15 @@
                 }
                 html5QrCode.start(
                     { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    { fps: 15, qrbox: { width: 250, height: 250 } },
                     (decodedText) => {
+                        const now = Date.now();
+                        if (decodedText === lastScannedCode && (now - lastScanTime) < 1500) {
+                            return; // تجنب التكرار العشوائي بنفس الثانية
+                        }
+                        lastScannedCode = decodedText;
+                        lastScanTime = now;
+
                         document.getElementById('barcode-input').value = decodedText;
                         autoFillFromBarcode();
                         
@@ -3044,6 +3020,8 @@
                                 });
                             }
                             renderCartTable();
+                            
+                            // صوت التنبيه عند نجاح القراءة دون إغلاق الكاميرا
                             try {
                                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                                 const osc = ctx.createOscillator();
