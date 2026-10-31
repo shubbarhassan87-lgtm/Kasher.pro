@@ -823,6 +823,9 @@
 
                 <input type="radio" id="tab-cust" name="acc_tab" onclick="renderAccountsTab('customers')">
                 <label for="tab-cust">ديون الزبائن</label>
+
+                <input type="radio" id="tab-reconcile" name="acc_tab" onclick="renderAccountsTab('reconcile')">
+                <label for="tab-reconcile">مطابقة الصندوق (مدير)</label>
             </div>
 
             <button class="btn-add" id="acc-add-btn" onclick="openAddAccountItemModal()" style="background: #ff9500; box-shadow:0 4px 12px rgba(255,149,0,0.25);">
@@ -1020,6 +1023,7 @@
         let suppliersDebt = [];
         let expensesList = [];
         let activitiesLog = [];
+        let cashReconciliations = [];
 
         function logActivity(action, details, amount = 0) {
             const now = new Date();
@@ -1056,6 +1060,7 @@
             localStorage.setItem('pos_suppliers', JSON.stringify(suppliersDebt));
             localStorage.setItem('pos_expenses', JSON.stringify(expensesList));
             localStorage.setItem('pos_activities', JSON.stringify(activitiesLog));
+            localStorage.setItem('pos_reconciliations', JSON.stringify(cashReconciliations));
             localStorage.setItem('pos_cash', cashBalance.toString());
             localStorage.setItem('pos_store', JSON.stringify(storeData));
             localStorage.setItem('pos_staff', JSON.stringify(staffMembers));
@@ -1067,7 +1072,7 @@
             if (firebaseConfigUrl && window.firebase) {
                 try {
                     firebase.database().ref('pos_data').set({
-                        inventory, invoicesList, customersDebt, suppliersDebt, expensesList, activitiesLog, cashBalance, storeData
+                        inventory, invoicesList, customersDebt, suppliersDebt, expensesList, activitiesLog, cashReconciliations, cashBalance, storeData
                     });
                 } catch(e) { console.log('Firebase Sync Pending...', e); }
             }
@@ -1080,6 +1085,7 @@
             if (localStorage.getItem('pos_suppliers')) suppliersDebt = JSON.parse(localStorage.getItem('pos_suppliers'));
             if (localStorage.getItem('pos_expenses')) expensesList = JSON.parse(localStorage.getItem('pos_expenses'));
             if (localStorage.getItem('pos_activities')) activitiesLog = JSON.parse(localStorage.getItem('pos_activities'));
+            if (localStorage.getItem('pos_reconciliations')) cashReconciliations = JSON.parse(localStorage.getItem('pos_reconciliations'));
             if (localStorage.getItem('pos_cash')) cashBalance = parseFloat(localStorage.getItem('pos_cash'));
             if (localStorage.getItem('pos_store')) storeData = JSON.parse(localStorage.getItem('pos_store'));
             if (localStorage.getItem('pos_staff')) staffMembers = JSON.parse(localStorage.getItem('pos_staff'));
@@ -1154,7 +1160,7 @@
         }
 
         function exportBackupJSON() {
-            const dataObj = { inventory, invoicesList, customersDebt, suppliersDebt, expensesList, activitiesLog, cashBalance, storeData, staffMembers };
+            const dataObj = { inventory, invoicesList, customersDebt, suppliersDebt, expensesList, activitiesLog, cashReconciliations, cashBalance, storeData, staffMembers };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
@@ -1194,6 +1200,7 @@
                     if (importedData.suppliersDebt) suppliersDebt = importedData.suppliersDebt;
                     if (importedData.expensesList) expensesList = importedData.expensesList;
                     if (importedData.activitiesLog) activitiesLog = importedData.activitiesLog;
+                    if (importedData.cashReconciliations) cashReconciliations = importedData.cashReconciliations;
                     if (importedData.cashBalance !== undefined) cashBalance = importedData.cashBalance;
                     if (importedData.storeData) storeData = importedData.storeData;
                     if (importedData.staffMembers) staffMembers = importedData.staffMembers;
@@ -1470,7 +1477,6 @@
             });
         }
 
-        // 📲 إرسال كشف الاحتياجات كاملاً عبر الواتساب بدون أي بتر
         function getNeedsReportText() {
             const safetyPct = parseInt(document.getElementById('safety-percent-select').value) || 30;
             let needsItems = inventory.filter(item => {
@@ -2159,7 +2165,6 @@
             });
         }
 
-        // 📲 إرسال الفاتورة بالكامل للواتساب بدون أي بتر مع ترميز كامل
         function showInvoiceDetails(invId) {
             const inv = invoicesList.find(i => i.id === invId);
             if (!inv) return;
@@ -2634,7 +2639,106 @@
                         </div>
                     `;
                 });
+            } else if (tab === 'reconcile') {
+                addBtn.style.display = 'none';
+                if (loggedUserRole !== 'owner') {
+                    list.innerHTML = '<div style="text-align:center; color:#ff3b30; padding:20px;">عفواً، هذه الميزة مخصصة للمدير (المالك) فقط!</div>';
+                    return;
+                }
+
+                let reconciliationsHtml = '';
+                if (!cashReconciliations || cashReconciliations.length === 0) {
+                    reconciliationsHtml = '<div style="text-align:center; color:#8e8e93; padding:10px;">لا توجد عمليات مطابقة سابقة مسجلة</div>';
+                } else {
+                    cashReconciliations.forEach(rec => {
+                        let diffColor = rec.diff === 0 ? '#34c759' : (rec.diff > 0 ? '#007aff' : '#ff3b30');
+                        reconciliationsHtml += `
+                            <div class="account-item">
+                                <div class="item-info">
+                                    <span class="item-name">مطابقة صندوق (${rec.date})</span>
+                                    <span class="item-details">الرصيد بالنظام: ${rec.systemBalance.toLocaleString()} | الفعلي: ${rec.actualBalance.toLocaleString()}</span>
+                                </div>
+                                <div style="text-align:left;">
+                                    <div style="font-weight:bold; color:${diffColor}; font-size:14px;">فارق: ${rec.diff >= 0 ? '+' : ''}${rec.diff.toLocaleString()} د.ع</div>
+                                    <div style="font-size:10px; color:#8e8e93;">بواسطة: ${rec.user}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                list.innerHTML = `
+                    <div style="background:linear-gradient(135deg, #007aff, #0056b3); color:white; border-radius:18px; padding:18px; display:flex; flex-direction:column; gap:10px;">
+                        <div style="font-size:15px; font-weight:bold;"><i class="fa-solid fa-vault"></i> مطابقة الصندوق المالي نهاية اليوم (حصرياً للمدير)</div>
+                        <div style="font-size:12px; opacity:0.9; line-height:1.5;">
+                            الرصيد الحالي بالصندوق حسب النظام: <b>${cashBalance.toLocaleString()} د.ع</b>
+                        </div>
+                        <div class="input-group" style="margin-top:5px;">
+                            <label style="color:white;">أدخل المبلغ الفعلي الموجود في الصندوق يدوياً:</label>
+                            <input type="number" id="actual-cash-input" class="input-field" placeholder="0.00" style="background:white; color:#1c1c1e;" oninput="calculateReconciliationDiff()">
+                        </div>
+                        <div id="reconciliation-diff-result" style="font-size:13px; font-weight:bold; padding:8px; background:rgba(255,255,255,0.2); border-radius:10px; display:none;"></div>
+                        <button class="btn-save" style="background:#34c759;" onclick="saveDailyCashReconciliation()">
+                            <i class="fa-solid fa-check-circle"></i> اعتماد وحفظ المطابقة اليومية للصندوق
+                        </button>
+                    </div>
+
+                    <h4 style="font-size:14px; color:#1c1c1e; margin-top:10px;">سجل مطابقات الصندوق السابقة:</h4>
+                    ${reconciliationsHtml}
+                `;
             }
+        }
+
+        function calculateReconciliationDiff() {
+            let actualVal = parseFloat(document.getElementById('actual-cash-input').value) || 0;
+            let diff = actualVal - cashBalance;
+            let resDiv = document.getElementById('reconciliation-diff-result');
+            if (resDiv) {
+                resDiv.style.display = 'block';
+                if (diff === 0) {
+                    resDiv.style.color = '#e8f5e9';
+                    resDiv.innerHTML = '✓ الصندوق مطابق تماماً بنسبة 100% ولا يوجد أي فارق!';
+                } else if (diff > 0) {
+                    resDiv.style.color = '#e0f2fe';
+                    resDiv.innerHTML = `📈 يوجد زيادة نقدية في الصندوق بمقدار: +${diff.toLocaleString()} د.ع`;
+                } else {
+                    resDiv.style.color = '#ffebee';
+                    resDiv.innerHTML = `📉 يوجد عجز مالي في الصندوق بمقدار: ${diff.toLocaleString()} د.ع`;
+                }
+            }
+        }
+
+        function saveDailyCashReconciliation() {
+            if (loggedUserRole !== 'owner') {
+                alert('عفواً، هذه العملية مخصصة للمدير (المالك) فقط!');
+                return;
+            }
+            let actualVal = parseFloat(document.getElementById('actual-cash-input').value);
+            if (isNaN(actualVal)) {
+                alert('يرجى إدخال المبلغ الفعلي الموجود في الصندوق بشكل صحيح!');
+                return;
+            }
+
+            let diff = actualVal - cashBalance;
+            let todayStr = getFormattedTodayDate();
+
+            let reconciliationRecord = {
+                id: Date.now(),
+                date: todayStr,
+                systemBalance: cashBalance,
+                actualBalance: actualVal,
+                diff: diff,
+                user: loggedUserName
+            };
+
+            if (!cashReconciliations) cashReconciliations = [];
+            cashReconciliations.unshift(reconciliationRecord);
+
+            logActivity('مطابقة الصندوق', `تم إجراء مطابقة الصندوق المالي نهاية اليوم بواسطة المدير. النظام: ${cashBalance.toLocaleString()} | الفعلي: ${actualVal.toLocaleString()} | الفارق: ${diff >= 0 ? '+' : ''}${diff.toLocaleString()} د.ع`, diff);
+            
+            saveDataToStorage();
+            renderAccountsTab('reconcile');
+            alert(`تم اعتماد وحفظ مطابقة الصندوق بنجاح!\nالفارق المسجل: ${diff >= 0 ? '+' : ''}${diff.toLocaleString()} د.ع`);
         }
 
         function updateSmartDashboard() {
@@ -2976,7 +3080,6 @@
             alert('تم تحديث رصيد الصندوق بنجاح!');
         }
 
-        // ⚡ تعديل الكاميرا وقارئ الباركود ليستمر في العمل بدون أن ينطفئ بعد القراءة
         function toggleContinuousCamera() {
             const readerDiv = document.getElementById('reader');
             if (readerDiv.style.display === 'block') {
@@ -2992,7 +3095,7 @@
                     (decodedText) => {
                         const now = Date.now();
                         if (decodedText === lastScannedCode && (now - lastScanTime) < 1500) {
-                            return; // تجنب التكرار العشوائي بنفس الثانية
+                            return;
                         }
                         lastScannedCode = decodedText;
                         lastScanTime = now;
@@ -3021,7 +3124,6 @@
                             }
                             renderCartTable();
                             
-                            // صوت التنبيه عند نجاح القراءة دون إغلاق الكاميرا
                             try {
                                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                                 const osc = ctx.createOscillator();
