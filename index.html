@@ -38,7 +38,6 @@
             align-items: center;
         }
 
-        /* حاوية رئيسية متجاوبة للـ Tablets والشاشات الكبيرة */
         .app-container {
             width: 100%;
             max-width: 900px;
@@ -133,7 +132,6 @@
             width: 100%;
         }
 
-        /* شبكة متجاوبة للتابلت: 3 أعمدة في الأجهزة اللوحية، و2 في الهواتف */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -626,15 +624,15 @@
                 </div>
 
                 <div class="input-group" id="customer-name-group">
-                    <label><i class="fa-solid fa-user" style="color:#007aff;"></i> اسم الزبون</label>
-                    <input type="text" id="customer-name-input" class="input-field" placeholder="أدخل اسم الزبون (افتراضي: زبون عام)">
+                    <label><i class="fa-solid fa-user" style="color:#007aff;"></i> اسم الزبون / المورد</label>
+                    <input type="text" id="customer-name-input" class="input-field" placeholder="أدخل اسم الزبون أو المورد (افتراضي: عام)">
                 </div>
 
                 <div class="input-group">
-                    <label>الباركود (ماسح سريع مستمر ⚡)</label>
+                    <label>الباركود (متوافق مع الماسح الخارجي USB/Bluetooth ⚡)</label>
                     <div class="barcode-wrapper">
-                        <input type="text" id="barcode-input" class="input-field" placeholder="امسح أو ادخل الباركود" oninput="autoFillFromBarcode()" onkeyup="autoFillFromBarcode()">
-                        <button class="btn-scan" onclick="toggleContinuousCamera()" title="ماسح باركود مستمر بالكاميرا">
+                        <input type="text" id="barcode-input" class="input-field" placeholder="امسح بالماسح الضوئي أو اكتب الباركود..." oninput="autoFillFromBarcode()" onkeyup="autoFillFromBarcode()">
+                        <button class="btn-scan" onclick="toggleContinuousCamera()" title="ماسح باركود بالكاميرا">
                             <i class="fa-solid fa-camera"></i>
                         </button>
                     </div>
@@ -643,9 +641,10 @@
                 <div id="reader"></div>
 
                 <div class="input-group">
-                    <label>اسم المادة</label>
-                    <input type="text" id="item-name-input" list="inventory-datalist" class="input-field" placeholder="أدخل اسم المنتج..." oninput="autoFillFromName()">
+                    <label>اسم المادة (البحث بأول حرف أو الحروف المتشابهة 🔍)</label>
+                    <input type="text" id="item-name-input" list="inventory-datalist" class="input-field" placeholder="اكتب الحرف الأول لبحث المواد المتشابهة..." oninput="autoFillFromName()">
                     <datalist id="inventory-datalist"></datalist>
+                    <div id="similar-items-suggestions" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:5px;"></div>
                     <div id="stock-hint" style="font-size:12px; margin-top:3px; font-weight:bold;"></div>
                 </div>
 
@@ -852,13 +851,21 @@
                     <input type="radio" id="tab-cust" name="acc_tab" onclick="renderAccountsTab('customers')">
                     <label for="tab-cust">ديون الزبائن</label>
 
+                    <input type="radio" id="tab-supp" name="acc_tab" onclick="renderAccountsTab('suppliers')">
+                    <label for="tab-supp">ديون الموردين</label>
+
                     <input type="radio" id="tab-reconcile" name="acc_tab" onclick="renderAccountsTab('reconcile')">
-                    <label for="tab-reconcile">مطابقة الصندوق (مدير)</label>
+                    <label for="tab-reconcile">مطابقة الصندوق</label>
                 </div>
 
-                <button class="btn-add" id="acc-add-btn" onclick="openAddAccountItemModal()" style="background: #ff9500; box-shadow:0 4px 12px rgba(255,149,0,0.25);">
-                    <i class="fa-solid fa-user-plus"></i> إضافة دين / حساب زبون
-                </button>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn-add" id="acc-add-btn" onclick="openAddAccountItemModal()" style="background: #ff9500; box-shadow:0 4px 12px rgba(255,149,0,0.25); flex:1;">
+                        <i class="fa-solid fa-user-plus"></i> إضافة حساب / دين جديد
+                    </button>
+                    <button class="btn-add" onclick="exportAccountsPDF()" style="background: #ff3b30; box-shadow:0 4px 12px rgba(255,59,48,0.25); flex:1;">
+                        <i class="fa-solid fa-file-pdf"></i> تصدير تقرير الحسابات (PDF)
+                    </button>
+                </div>
 
                 <div id="accounts-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;"></div>
             </div>
@@ -995,11 +1002,12 @@
 
             <div class="settings-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="font-size: 17px; color: #1c1c1e;"><i class="fa-solid fa-id-card" style="color:#007aff;"></i> حسابات الموظفين (الكاشير)</h3>
+                    <h3 style="font-size: 17px; color: #1c1c1e;"><i class="fa-solid fa-id-card" style="color:#007aff;"></i> حسابات الموظفين (الكاشير) والصلاحيات</h3>
                     <button onclick="openAddStaffModal()" style="background:#34c759; color:#fff; border:none; padding:8px 14px; border-radius:12px; font-size:12px; font-weight:bold; cursor:pointer;">
                         <i class="fa-solid fa-user-plus"></i> إضافة موظف
                     </button>
                 </div>
+                <p style="font-size:12px; color:#8e8e93; margin-top:4px;">الموظف (الكاشير) يملك صلاحيات مبيعات فقط، بينما المالك يملك صلاحيات الإدارة والتقارير والأرباح كاملة.</p>
                 <div id="staff-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;"></div>
             </div>
         </div>
@@ -1053,6 +1061,18 @@
         let expensesList = [];
         let activitiesLog = [];
         let cashReconciliations = [];
+
+        // تشغيل صوت تنبيهي قصير عند نفاد المواد أو قاربت على الانتهاء
+        function playWarningBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = 440; gain.gain.value = 0.2;
+                osc.start(); setTimeout(() => { osc.stop(); }, 250);
+            } catch(e) {}
+        }
 
         function logActivity(action, details, amount = 0) {
             const now = new Date();
@@ -1247,7 +1267,25 @@
         function autoFillFromName() {
             const inputVal = document.getElementById('item-name-input').value.trim();
             const hint = document.getElementById('stock-hint');
-            if (!inputVal) { hint.innerText = ''; return; }
+            const suggestionsDiv = document.getElementById('similar-items-suggestions');
+            if (suggestionsDiv) suggestionsDiv.innerHTML = '';
+
+            if (!inputVal) { 
+                hint.innerText = ''; 
+                return; 
+            }
+
+            const matchedItems = inventory.filter(i => i.name && i.name.toString().trim().toLowerCase().startsWith(inputVal.toLowerCase()) || i.name.toLowerCase().includes(inputVal.toLowerCase()));
+
+            if (matchedItems.length > 0 && suggestionsDiv) {
+                matchedItems.forEach(match => {
+                    suggestionsDiv.innerHTML += `
+                        <button type="button" onclick="selectSuggestedItem('${match.name}')" style="background:#eef2ff; color:#0056b3; border:1px solid #c7d2fe; padding:5px 10px; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer;">
+                            ${match.name} (${match.qty} متوفر)
+                        </button>
+                    `;
+                });
+            }
 
             const item = inventory.find(i => i.name && i.name.toString().trim().toLowerCase() === inputVal.toLowerCase());
             if (item) {
@@ -1258,9 +1296,11 @@
                 if (item.qty <= 0) {
                     hint.style.color = '#ff3b30';
                     hint.innerText = `⚠️ نفدت الكمية من المخزن! (الرصيد: 0)`;
+                    playWarningBeep();
                 } else if (item.qty <= 5) {
                     hint.style.color = '#ff9500';
                     hint.innerText = `⚠️ كمية منخفضة بالمخزن: متوفر ${item.qty} فقط`;
+                    playWarningBeep();
                 } else {
                     hint.style.color = '#34c759';
                     hint.innerText = `✓ المادة متوفرة بالمخزن: ${item.qty} قطعة`;
@@ -1268,6 +1308,13 @@
             } else {
                 hint.innerText = '';
             }
+        }
+
+        function selectSuggestedItem(name) {
+            document.getElementById('item-name-input').value = name;
+            autoFillFromName();
+            const suggestionsDiv = document.getElementById('similar-items-suggestions');
+            if (suggestionsDiv) suggestionsDiv.innerHTML = '';
         }
 
         function autoFillFromBarcode() {
@@ -1285,6 +1332,7 @@
                 
                 hint.style.color = '#007aff';
                 hint.innerHTML = `✓ مادة مسجلة مسبقاً | الرصيد المتوفر: <b>${item.qty} قطعة</b>`;
+                if (item.qty <= 5) playWarningBeep();
             } else {
                 hint.innerText = 'مادة جديدة غير مسجلة بالمخزن';
                 hint.style.color = '#ff9500';
@@ -1440,7 +1488,7 @@
                 }
                 document.getElementById('page-title').querySelector('span').innerText = 'واجهة المشتريات والمخزن';
                 costGroup.style.display = 'flex';
-                custGroup.style.display = 'none';
+                custGroup.style.display = 'flex';
                 pricesContainer.classList.remove('single-column');
             }
 
@@ -1761,6 +1809,18 @@
             html2pdf().set(opt).from(element).save();
         }
 
+        function exportAccountsPDF() {
+            let container = document.getElementById('accounts-list');
+            let opt = {
+                margin:       0.3,
+                filename:     `CashierPlus_Accounts_Report_${new Date().toISOString().split('T')[0]}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(container).save();
+        }
+
         function openSettingsScreen() {
             if (loggedUserRole === 'staff') {
                 alert('عفواً، إعدادات النظام مخصصة للمالك فقط!');
@@ -1910,6 +1970,8 @@
             document.getElementById('sell-price-input').value = '';
             document.getElementById('qty-input').value = '1';
             document.getElementById('stock-hint').innerText = '';
+            const suggestionsDiv = document.getElementById('similar-items-suggestions');
+            if (suggestionsDiv) suggestionsDiv.innerHTML = '';
         }
 
         function removeFromCart(index) {
@@ -1983,9 +2045,9 @@
             let total = taxableAmount + taxAmount;
 
             let customerName = document.getElementById('customer-name-input') ? document.getElementById('customer-name-input').value.trim() : '';
-            if (!customerName) customerName = 'زبون عام';
+            if (!customerName) customerName = currentMode === 'purchases' ? 'مورد عام' : 'زبون عام';
 
-            let invId = (currentPayType === 'return' ? '#RET-' : '#INV-') + Math.floor(1000 + Math.random() * 9000);
+            let invId = (currentPayType === 'return' ? '#RET-' : (currentMode === 'purchases' ? '#PUR-' : '#INV-')) + Math.floor(1000 + Math.random() * 9000);
             let statusText = currentPayType === 'cash' ? 'كاش' : (currentPayType === 'credit' ? 'آجل' : 'مسترجع');
             let todayFormatted = getFormattedTodayDate();
 
@@ -2036,18 +2098,21 @@
                 if (currentMode === 'sales') cashBalance += total;
                 else cashBalance -= total;
                 updateCashDisplay();
-            } else if (currentPayType === 'credit' && currentMode === 'sales') {
-                let existingCust = customersDebt.find(c => c.name.toLowerCase() === customerName.toLowerCase());
-                if (existingCust) {
-                    existingCust.debt += total;
+            } else if (currentPayType === 'credit') {
+                if (currentMode === 'sales') {
+                    let existingCust = customersDebt.find(c => c.name.toLowerCase() === customerName.toLowerCase());
+                    if (existingCust) existingCust.debt += total;
+                    else customersDebt.push({ id: Date.now(), name: customerName, phone: 'غير محدد', debt: total, payments: [] });
                 } else {
-                    customersDebt.push({ id: Date.now(), name: customerName, phone: 'غير محدد', debt: total, payments: [] });
+                    let existingSupp = suppliersDebt.find(s => s.name.toLowerCase() === customerName.toLowerCase());
+                    if (existingSupp) existingSupp.debt += total;
+                    else suppliersDebt.push({ id: Date.now(), name: customerName, phone: 'غير محدد', debt: total, payments: [] });
                 }
             }
 
             logActivity(
                 currentMode === 'sales' ? (currentPayType === 'return' ? 'استرجاع مبيعات' : 'فاتورة مبيعات') : 'فاتورة مشتريات',
-                `فاتورة رقم (${invId}) للزبون: [${customerName}] - كاشير: ${loggedUserName}`,
+                `فاتورة رقم (${invId}) للطرف: [${customerName}] - كاشير: ${loggedUserName}`,
                 total
             );
 
@@ -2096,7 +2161,7 @@
             let usdEquiv = (grandTotal / rate).toFixed(2);
 
             let customerName = document.getElementById('customer-name-input') ? document.getElementById('customer-name-input').value.trim() : '';
-            if (!customerName) customerName = 'زبون عام';
+            if (!customerName) customerName = 'عام';
             let todayFormatted = getFormattedTodayDate();
 
             let logoHtml = storeData.logo ? `<div style="text-align:center; margin-bottom:5px;"><img src="${storeData.logo}" style="max-height:40px; max-width:120px;"></div>` : '';
@@ -2117,7 +2182,7 @@
                         <div style="font-size:11px;">هاتف: ${storeData.phone}</div>
                     </div>
                     <div style="font-size:11px; margin-bottom:8px;">
-                        <div>الزبون: <b>${customerName}</b></div>
+                        <div>الطرف: <b>${customerName}</b></div>
                         <div>رقم الفاتورة: <b>#معاينة</b></div>
                         <div>الكاشير: <b>${loggedUserName}</b></div>
                         <div>التاريخ: <b>${todayFormatted}</b></div>
@@ -2180,7 +2245,7 @@
                     <div class="invoice-item ${typeClass}" onclick="showInvoiceDetails('${inv.id}')">
                         <div>
                             <span class="invoice-id">${inv.id}</span>
-                            <div style="font-size: 13px; color: #1c1c1e; font-weight:bold; margin-top:2px;">الزبون: ${inv.customerName || 'زبون عام'}</div>
+                            <div style="font-size: 13px; color: #1c1c1e; font-weight:bold; margin-top:2px;">الطرف: ${inv.customerName || 'عام'}</div>
                             <div style="font-size: 12px; color: #8e8e93; margin-top: 2px;">
                                 كاشير: ${inv.cashier || 'المالك'} | ${inv.date}
                             </div>
@@ -2210,7 +2275,7 @@
 
             let waText = `*${storeData.name}*\n` +
                          `فاتورة رقم: ${inv.id}\n` +
-                         `الزبون: ${inv.customerName || 'زبون عام'}\n` +
+                         `الطرف: ${inv.customerName || 'عام'}\n` +
                          `التاريخ: ${inv.date}\n` +
                          `-----------------------------------\n`;
             
@@ -2240,7 +2305,7 @@
                     </div>
 
                     <div style="font-size:13px; margin:10px 0; display:flex; flex-direction:column; gap:6px;">
-                        <div class="summary-row"><span>الزبون:</span> <strong>${inv.customerName || 'زبون عام'}</strong></div>
+                        <div class="summary-row"><span>الطرف:</span> <strong>${inv.customerName || 'عام'}</strong></div>
                         <div class="summary-row"><span>رقم الفاتورة:</span> <strong>${inv.id}</strong></div>
                         <div class="summary-row"><span>الكاشير:</span> <strong>${inv.cashier || 'المالك'}</strong></div>
                         <div class="summary-row"><span>حالة الدفع:</span> <strong>${inv.status}</strong></div>
@@ -2333,15 +2398,18 @@
             items.forEach(item => {
                 let badgeClass = item.qty <= 5 ? 'badge-low-stock' : 'badge-stock';
                 let editDeleteHtml = loggedUserRole === 'owner' ? `
-                    <div class="btn-group-actions" style="display:flex; gap:8px;">
-                        <button class="btn-edit-item" onclick="openEditModal(${item.id})" style="background:#007aff; color:white; border:none; padding:9px 14px; border-radius:12px; cursor:pointer; font-size:13px; font-weight:700;">
+                    <div class="btn-group-actions" style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button onclick="openItemHistoryModal('${item.name}')" style="background:#af52de; color:white; border:none; padding:8px 10px; border-radius:12px; cursor:pointer; font-size:12px; font-weight:700;" title="حركة المادة وتاريخها">
+                            <i class="fa-solid fa-clock-rotate-left"></i> الحركة
+                        </button>
+                        <button class="btn-edit-item" onclick="openEditModal(${item.id})" style="background:#007aff; color:white; border:none; padding:8px 10px; border-radius:12px; cursor:pointer; font-size:12px; font-weight:700;">
                             <i class="fa-solid fa-pen-to-square"></i> تعديل
                         </button>
-                        <button class="btn-delete-item" onclick="deleteInventoryItem(${item.id})" style="background:#ff3b30; color:white; border:none; padding:9px 14px; border-radius:12px; cursor:pointer; font-size:13px; font-weight:700;">
+                        <button class="btn-delete-item" onclick="deleteInventoryItem(${item.id})" style="background:#ff3b30; color:white; border:none; padding:8px 10px; border-radius:12px; cursor:pointer; font-size:12px; font-weight:700;">
                             <i class="fa-solid fa-trash"></i> حذف
                         </button>
                     </div>
-                ` : `<span style="font-size:12px; color:#8e8e93;">(للمالك فقط)</span>`;
+                ` : `<button onclick="openItemHistoryModal('${item.name}')" style="background:#af52de; color:white; border:none; padding:8px 12px; border-radius:12px; cursor:pointer; font-size:12px; font-weight:700;"><i class="fa-solid fa-clock-rotate-left"></i> الحركة</button>`;
 
                 listDiv.innerHTML += `
                     <div class="inventory-item">
@@ -2354,6 +2422,71 @@
                     </div>
                 `;
             });
+        }
+
+        function openItemHistoryModal(itemName) {
+            let historyEvents = [];
+
+            invoicesList.forEach(inv => {
+                if (inv.items) {
+                    inv.items.forEach(it => {
+                        if (it.name.toLowerCase() === itemName.toLowerCase()) {
+                            historyEvents.push({
+                                date: inv.date,
+                                type: inv.type === 'purchases' ? 'شراء توريد' : (inv.payType === 'return' ? 'استرجاع مبيعات' : 'بيع مادة'),
+                                details: `فاتورة (${inv.id}) - كمية: ${it.qty} - الإجمالي: ${it.total.toLocaleString()} د.ع`,
+                                amount: it.total,
+                                badgeColor: inv.type === 'purchases' ? '#34c759' : '#007aff'
+                            });
+                        }
+                    });
+                }
+            });
+
+            activitiesLog.forEach(act => {
+                if (act.details && act.details.toLowerCase().includes(itemName.toLowerCase())) {
+                    historyEvents.push({
+                        date: act.fullDate,
+                        type: act.action,
+                        details: act.details,
+                        amount: act.amount,
+                        badgeColor: '#af52de'
+                    });
+                }
+            });
+
+            historyEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            let eventsHtml = '';
+            if (historyEvents.length === 0) {
+                eventsHtml = '<div style="text-align:center; color:#8e8e93; padding:20px;">لا توجد سجلات حركات مسجلة لهذه المادة حتى الآن.</div>';
+            } else {
+                historyEvents.forEach((ev, idx) => {
+                    eventsHtml += `
+                        <div style="background:#f8f8fa; border-right:4px solid ${ev.badgeColor}; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:4px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <b style="font-size:13px; color:#1c1c1e;">#${idx+1} [${ev.type}]</b>
+                                <span style="font-size:11px; color:#8e8e93;">${ev.date}</span>
+                            </div>
+                            <div style="font-size:13px; color:#3a3a3c;">${ev.details}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('modal-body').innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="color:#007aff; font-size:17px;"><i class="fa-solid fa-clock-rotate-left"></i> سجل حركة المادة: ${itemName}</h3>
+                    <i class="fa-solid fa-xmark" onclick="closeModal()" style="cursor:pointer; font-size:22px; color:#8e8e93;"></i>
+                </div>
+                <hr style="border:0; border-top:1px solid #e5e5ea;">
+                <p style="font-size:12px; color:#8e8e93;">تاريخ ومتابعة حركة المادة (مشتريات ومبيعات) منذ البداية:</p>
+                <div style="max-height:350px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
+                    ${eventsHtml}
+                </div>
+                <button class="btn-save" style="background:#8e8e93;" onclick="closeModal()">إغلاق السجل</button>
+            `;
+            document.getElementById('app-modal').style.display = 'flex';
         }
 
         function openAddNewInventoryModal() {
@@ -2383,7 +2516,7 @@
             if (!name) { alert('يرجى كتابة اسم المادة!'); return; }
 
             inventory.push({ id: Date.now(), name, barcode, qty, cost, sell });
-            logActivity('إضافة للمخزن', `تمت إضافة المادة (${name}) بالكمية (${qty})`);
+            logActivity('إضافة للمخزن', `تمت إضافة المادة (${name}) بالكمية (${qty}) أول مرة`);
             saveDataToStorage();
             renderInventory();
             closeModal();
@@ -2527,7 +2660,6 @@
             let totalSales = invoicesList.filter(i => i.type === 'sales').reduce((s, i) => s + i.amount, 0);
             let totalPurchases = invoicesList.filter(i => i.type === 'purchases').reduce((s, i) => s + i.amount, 0);
             let totalExp = expensesList.reduce((s, e) => s + e.amount, 0);
-            let netProfit = totalSales - totalPurchases - totalExp;
 
             let now = new Date();
             let todayStr = now.toISOString().split('T')[0];
@@ -2644,7 +2776,7 @@
                 addBtn.style.display = 'flex';
                 addBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> إضافة دين / حساب زبون';
                 if (customersDebt.length === 0) {
-                    list.innerHTML = '<div style="text-align:center; color:#8e8e93; padding:20px;">لا توجد حسابات ديون مسجلة</div>';
+                    list.innerHTML = '<div style="text-align:center; color:#8e8e93; padding:20px;">لا توجد حسابات ديون زبائن مسجلة</div>';
                 }
                 customersDebt.forEach(c => {
                     let paymentsListHtml = (c.payments && c.payments.length > 0) ? c.payments.map(p => `<div style="font-size:12px; color:#34c759;">• تسديد ${p.amount.toLocaleString()} د.ع (${p.date})</div>`).join('') : '<div style="font-size:12px; color:#8e8e93;">لا توجد دفعات جزئية مسجلة بعد</div>';
@@ -2653,7 +2785,7 @@
                         <div class="account-item" style="flex-direction:column; align-items:flex-start; gap:10px;">
                             <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
                                 <div class="item-info">
-                                    <span class="item-name">${c.name}</span>
+                                    <span class="item-name">${c.name} (زبون)</span>
                                     <span class="item-details"><i class="fa-solid fa-phone"></i> ${c.phone}</span>
                                 </div>
                                 <div style="text-align:left;">
@@ -2663,6 +2795,34 @@
                             </div>
                             <div style="width:100%; background:#f2f2f7; padding:10px; border-radius:10px;">
                                 <div style="font-size:12px; font-weight:bold; margin-bottom:3px; color:#3a3a3c;">سجل الدفعات الجزئية:</div>
+                                ${paymentsListHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else if (tab === 'suppliers') {
+                addBtn.style.display = 'flex';
+                addBtn.innerHTML = '<i class="fa-solid fa-truck-field"></i> إضافة حساب / دين مورد';
+                if (suppliersDebt.length === 0) {
+                    list.innerHTML = '<div style="text-align:center; color:#8e8e93; padding:20px;">لا توجد حسابات ديون للموردين والمذاخر مسجلة</div>';
+                }
+                suppliersDebt.forEach(s => {
+                    let paymentsListHtml = (s.payments && s.payments.length > 0) ? s.payments.map(p => `<div style="font-size:12px; color:#34c759;">• تسديد للمورد ${p.amount.toLocaleString()} د.ع (${p.date})</div>`).join('') : '<div style="font-size:12px; color:#8e8e93;">لا توجد دفعات تسديد للمورد بعد</div>';
+
+                    list.innerHTML += `
+                        <div class="account-item" style="flex-direction:column; align-items:flex-start; gap:10px;">
+                            <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+                                <div class="item-info">
+                                    <span class="item-name">${s.name} (مورد / مخر)</span>
+                                    <span class="item-details"><i class="fa-solid fa-phone"></i> ${s.phone}</span>
+                                </div>
+                                <div style="text-align:left;">
+                                    <div style="font-weight:bold; color:#ff3b30; font-size:16px;">${s.debt.toLocaleString()} د.ع</div>
+                                    <button onclick="paySupplierDebtModal(${s.id})" style="background:#34c759; color:#fff; border:none; padding:6px 12px; border-radius:10px; font-size:12px; margin-top:4px; font-weight:700; cursor:pointer;"><i class="fa-solid fa-hand-holding-dollar"></i> تسديد للمورد</button>
+                                </div>
+                            </div>
+                            <div style="width:100%; background:#f2f2f7; padding:10px; border-radius:10px;">
+                                <div style="font-size:12px; font-weight:bold; margin-bottom:3px; color:#3a3a3c;">سجل دفعات التسديد للمورد:</div>
                                 ${paymentsListHtml}
                             </div>
                         </div>
@@ -2954,7 +3114,7 @@
                         <div class="invoice-item sales">
                             <div>
                                 <span class="invoice-id">${inv.id}</span>
-                                <div style="font-size:13px; font-weight:bold;">الزبون: ${inv.customerName || 'زبون عام'} | كاشير: ${inv.cashier || 'المالك'}</div>
+                                <div style="font-size:13px; font-weight:bold;">الطرف: ${inv.customerName || 'عام'} | كاشير: ${inv.cashier || 'المالك'}</div>
                                 <div style="font-size:12px; color:#8e8e93;">${inv.date}</div>
                             </div>
                             <div style="text-align:left;">
@@ -2975,6 +3135,16 @@
                     <div class="input-group"><label>عنوان المصروف (مثال: كهرباء، إيجار، ضيافة)</label><input type="text" id="exp-title" class="input-field" placeholder="فاتورة الكهرباء"></div>
                     <div class="input-group"><label>المبلغ (د.ع)</label><input type="number" id="exp-amount" class="input-field" placeholder="0.00"></div>
                     <button class="btn-save" style="background:#ff9500;" onclick="saveNewExpense()">حفظ المصروف وخصمه من الصندوق</button>
+                `;
+            } else if (currentAccTab === 'suppliers') {
+                document.getElementById('modal-body').innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>إضافة دين / حساب مورد (مخر) جديد</h3><i class="fa-solid fa-xmark" onclick="closeModal()" style="cursor:pointer; color:#8e8e93;"></i>
+                    </div><hr style="border:0; border-top:1px solid #e5e5ea;">
+                    <div class="input-group"><label>اسم المورد / المذخر</label><input type="text" id="supp-name" class="input-field" placeholder="مذخر الدواء الحديث"></div>
+                    <div class="input-group"><label>رقم الهاتف</label><input type="text" id="supp-phone" class="input-field" placeholder="07800000000"></div>
+                    <div class="input-group"><label>المبلغ المستحق للمورد (د.ع)</label><input type="number" id="supp-amount" class="input-field" placeholder="0.00"></div>
+                    <button class="btn-save" onclick="saveNewSupplierDebt()">حفظ حساب المورد</button>
                 `;
             } else {
                 document.getElementById('modal-body').innerHTML = `
@@ -3021,6 +3191,21 @@
             }
         }
 
+        function saveNewSupplierDebt() {
+            const name = document.getElementById('supp-name').value.trim();
+            const phone = document.getElementById('supp-phone').value.trim() || 'غير متوفر';
+            const debt = parseFloat(document.getElementById('supp-amount').value) || 0;
+            if (name && debt > 0) {
+                suppliersDebt.push({ id: Date.now(), name, phone, debt, payments: [] });
+                logActivity('إضافة دين مورد', `تسجيل مستحق جديد للمورد (${name}) بمبلغ (${debt.toLocaleString()} د.ع)`, debt);
+                saveDataToStorage();
+                renderAccountsTab('suppliers');
+                closeModal();
+            } else {
+                alert('يرجى كتابة اسم المورد والمبلغ بشكل صحيح!');
+            }
+        }
+
         function payCustomerDebtModal(id) {
             const cust = customersDebt.find(c => c.id === id);
             if (!cust) return;
@@ -3053,10 +3238,7 @@
 
             cust.debt -= amount;
             if (!cust.payments) cust.payments = [];
-            cust.payments.push({
-                amount: amount,
-                date: getFormattedTodayDate()
-            });
+            cust.payments.push({ amount: amount, date: getFormattedTodayDate() });
 
             cashBalance += amount;
             logActivity('تسديد دين جزئي', `تسديد مبلغ (${amount.toLocaleString()} د.ع) من حساب الزبون (${cust.name})`, amount);
@@ -3065,6 +3247,49 @@
             renderAccountsTab('customers');
             closeModal();
             alert('تم تسجيل الدفعة بنجاح وتحديث الصندوق وديون الزبون!');
+        }
+
+        function paySupplierDebtModal(id) {
+            const supp = suppliersDebt.find(s => s.id === id);
+            if (!supp) return;
+            document.getElementById('modal-body').innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>تسديد للمورد / المذخر: ${supp.name}</h3>
+                    <i class="fa-solid fa-xmark" onclick="closeModal()" style="cursor:pointer; color:#8e8e93;"></i>
+                </div><hr style="border:0; border-top:1px solid #e5e5ea;">
+                <div class="summary-row" style="margin-bottom:10px;">
+                    <span>المبلغ المستحق للمورد:</span>
+                    <strong style="color:#ff3b30;">${supp.debt.toLocaleString()} د.ع</strong>
+                </div>
+                <div class="input-group">
+                    <label>المبلغ المدفوع للمورد الآن (د.ع)</label>
+                    <input type="number" id="pay-supp-amount" class="input-field" placeholder="0.00">
+                </div>
+                <button class="btn-save" onclick="confirmPaySupplierDebt(${supp.id})"><i class="fa-solid fa-check"></i> خصم من الصندوق وتأكيد السداد للمورد</button>
+            `;
+            document.getElementById('app-modal').style.display = 'flex';
+        }
+
+        function confirmPaySupplierDebt(id) {
+            const supp = suppliersDebt.find(s => s.id === id);
+            if (!supp) return;
+            const amount = parseFloat(document.getElementById('pay-supp-amount').value) || 0;
+            if (amount <= 0 || amount > supp.debt) {
+                alert('يرجى إدخال مبلغ سداد صحيح!');
+                return;
+            }
+
+            supp.debt -= amount;
+            if (!supp.payments) supp.payments = [];
+            supp.payments.push({ amount: amount, date: getFormattedTodayDate() });
+
+            cashBalance -= amount;
+            logActivity('سداد للمورد', `دفع مبلغ (${amount.toLocaleString()} د.ع) للمورد (${supp.name})`, amount);
+            saveDataToStorage();
+            updateCashDisplay();
+            renderAccountsTab('suppliers');
+            closeModal();
+            alert('تم تسجيل الدفع للمورد وخصم المبلغ من الصندوق بنجاح!');
         }
 
         function openCashActionModal(type) {
@@ -3162,6 +3387,8 @@
                                 osc.start(); setTimeout(() => { osc.stop(); }, 100);
                             } catch(e) {}
                         }
+                        
+                        stopCamera();
                     },
                     () => {}
                 ).catch(err => {
