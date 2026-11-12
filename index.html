@@ -928,7 +928,7 @@
                     <button class="btn-add" id="acc-add-btn" onclick="openAddAccountItemModal()" style="background: #ff9500; box-shadow:0 4px 12px rgba(255,149,0,0.25); font-size:14px;">
                         <i class="fa-solid fa-user-plus"></i> إضافة حساب / دين جديد
                     </button>
-                    <button class="btn-add" onclick="exportAccountsPDF()" style="background: #ff3b30; box-shadow:0 4px 12px rgba(255,59,48,0.25); font-size:14px;">
+                    <button class="btn-add" onclick="exportAccountsPDF()" style="background: #ff3b30; box-shadow: 0 4px 12px rgba(255,59,48,0.25); font-size:14px;">
                         <i class="fa-solid fa-file-pdf"></i> تصدير تقرير الحسابات (PDF)
                     </button>
                 </div>
@@ -2230,8 +2230,11 @@
 
             invoicesList.unshift(newInvoice);
 
-            currentCart.forEach(cItem => {
-                let invItem = inventory.find(i => (cItem.barcode && String(cItem.barcode).trim() === String(cItem.barcode).trim()) || i.name.toLowerCase() === cItem.name.toLowerCase());
+            currentCart.forEach((cItem, idx) => {
+                let invItem = inventory.find(i => 
+                    (cItem.barcode && i.barcode && String(cItem.barcode).trim() === String(i.barcode).trim()) || 
+                    i.name.trim().toLowerCase() === cItem.name.trim().toLowerCase()
+                );
                 if (currentMode === 'purchases') {
                     if (invItem) {
                         invItem.qty += cItem.qty;
@@ -2240,8 +2243,8 @@
                         if (cItem.barcode) invItem.barcode = cItem.barcode;
                     } else {
                         inventory.push({ 
-                            id: Date.now(), 
-                            name: cItem.name, 
+                            id: Date.now() + idx, 
+                            name: cItem.name.trim(), 
                             qty: cItem.qty, 
                             cost: cItem.cost, 
                             sell: cItem.sell, 
