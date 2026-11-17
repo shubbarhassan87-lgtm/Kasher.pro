@@ -232,7 +232,6 @@
             gap: 13px;
         }
 
-        /* تنسيق قسم الأزرار السريعة للمنتجات */
         .quick-items-container {
             display: flex;
             gap: 8px;
@@ -650,7 +649,7 @@
 
                 <div class="square-card card-reports" onclick="openReportsScreen()">
                     <i class="fa-solid fa-chart-line" style="font-size:32px; margin-bottom:0;"></i>
-                    <span style="font-size:14px; font-weight:800;">التقارير والنمو والتقارير المالية</span>
+                    <span style="font-size:14px; font-weight:800;">التقارير وتحليلات الأداء ونصائح الشهر</span>
                 </div>
 
                 <div class="square-card card-settings" onclick="openSettingsScreen()">
@@ -665,7 +664,6 @@
                 <div class="form-card">
                     <h3 style="font-size: 16px; color: #007aff;"><i class="fa-solid fa-cart-plus"></i> إضافة المواد للفاتورة</h3>
                     
-                    <!-- قسم الأزرار السريعة للمنتجات الأكثر مبيعاً -->
                     <div class="input-group" id="quick-items-section" style="display:none;">
                         <label><i class="fa-solid fa-bolt" style="color:#f59e0b;"></i> المواد السريعة الأكثر مبيعاً (انقر للإضافة):</label>
                         <div class="quick-items-container" id="quick-items-bar"></div>
@@ -707,7 +705,6 @@
                         <div id="stock-hint" style="font-size:12px; margin-top:2px; font-weight:bold;"></div>
                     </div>
 
-                    <!-- حقل سعر الدرزن للتكلفة (يظهر في المشتريات فقط) وقبل سعر التكلفة الفردي -->
                     <div class="input-group" id="dozen-cost-group" style="display:none;">
                         <label>سعر الدرزن للتكلفة (12 قطعة)</label>
                         <input type="number" id="dozen-cost-input" class="input-field" placeholder="0.00" oninput="calculateSingleFromDozen()">
@@ -820,6 +817,28 @@
                         <i class="fa-brands fa-whatsapp"></i> إرسال واتساب
                     </button>
                 </div>
+            </div>
+
+            <!-- قسم تقرير المواد قليلة الحركة (أسبوعي / شهري) بصيغة PDF -->
+            <div class="needs-card" style="border: 2px solid #ff9500; background: linear-gradient(135deg, #fffdf5, #ffffff);">
+                <h3 style="font-size: 15px; color: #c67000;"><i class="fa-solid fa-hourglass-half" style="color:#ff9500;"></i> تقرير المواد قليلة الحركة (راكدة) - PDF</h3>
+                <p style="font-size: 12px; color: #8e8e93;">تقرير بأسماء المواد التي لم تُباع خلال الأسبوع أو الشهر لتصريفها بعمل عروض ترويجية.</p>
+                <div class="type-toggle" style="background:#fef3c7;">
+                    <input type="radio" id="slow-week" name="slow_type" checked onclick="renderSlowMovingItems('week')">
+                    <label for="slow-week">قليلة الحركة أسبوعياً</label>
+                    
+                    <input type="radio" id="slow-month" name="slow_type" onclick="renderSlowMovingItems('month')">
+                    <label for="slow-month">قليلة الحركة شهرياً</label>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-save" style="background:#007aff; font-size:13px; flex:1;" onclick="printSlowMovingReport()">
+                        <i class="fa-solid fa-print"></i> طباعة التقرير
+                    </button>
+                    <button class="btn-save" style="background:#ff3b30; font-size:13px; flex:1;" onclick="exportSlowMovingPDF()">
+                        <i class="fa-solid fa-file-pdf"></i> تصدير PDF أسبوعي/شهري
+                    </button>
+                </div>
+                <div id="slow-moving-list-container" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;"></div>
             </div>
 
             <div class="needs-card">
@@ -950,6 +969,19 @@
                 </div>
             </div>
 
+            <!-- قسم المستشار المالي وتحليل الأداء ونصائح الشهر -->
+            <div class="reports-card" style="border: 2px solid #34c759; background: linear-gradient(135deg, #f3fcf4, #ffffff);">
+                <h3 style="font-size: 16px; color: #248a3d;"><i class="fa-solid fa-brain" style="color:#34c759;"></i> المستشار المالي الذكي وتحليلات الشهر</h3>
+                <p style="font-size: 12px; color: #8e8e93;">تحليل شامل للأرباح، المصاريف، المشتريات، والمبيعات مع توصيات لحمايتك من الخسارة.</p>
+                
+                <div class="input-group" style="margin-top:4px;">
+                    <label style="font-size:12px;">اختر الشهر للتحليل:</label>
+                    <input type="month" id="ai-analysis-month" class="input-field" onchange="renderFinancialAIAdvisor()">
+                </div>
+                
+                <div id="ai-advisor-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;"></div>
+            </div>
+
             <div class="reports-card" style="padding: 16px;">
                 <h4 style="font-size:15px; color:#af52de; margin-bottom:10px;"><i class="fa-solid fa-chart-column"></i> إحصائيات مبيعات الأسبوع الأخير</h4>
                 <div style="position: relative; height: 220px; width: 100%;">
@@ -1025,7 +1057,7 @@
             </div>
 
             <div class="settings-card">
-                <h3 style="font-size: 16px; color: #ff3b30;"><i class="fa-solid fa-print"></i> بيانات المتجر والعملة</h3>
+                <h3 style="font-size: 16px; color: #ff3b30;"><i class="fa-solid fa-print"></i> بيانات المتجر، الشعار، والطباعة المتعددة</h3>
                 
                 <div class="input-group">
                     <label>اسم المتجر / المحل</label>
@@ -1033,8 +1065,9 @@
                 </div>
 
                 <div class="input-group">
-                    <label>رابط الشعار (Logo URL - اختياري)</label>
-                    <input type="text" id="set-store-logo" class="input-field" placeholder="https://example.com/logo.png">
+                    <label><i class="fa-solid fa-image"></i> تحميل شعار المحل (من الهاتف)</label>
+                    <input type="file" id="store-logo-file" accept="image/*" class="input-field" onchange="handleLogoUpload(event)" style="padding: 8px;">
+                    <div id="logo-preview-container" style="margin-top: 5px; text-align: center;"></div>
                 </div>
 
                 <div class="input-group">
@@ -1056,7 +1089,7 @@
                 </div>
 
                 <button class="btn-save" style="background:#ff3b30;" onclick="saveStoreSettings()">
-                    <i class="fa-solid fa-floppy-disk"></i> حفظ إعدادات المتجر والعملة
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ إعدادات المتجر والشعار
                 </button>
             </div>
 
@@ -1083,6 +1116,7 @@
         let currentAccTab = 'profits';
         let currentRepTab = 'activities';
         let currentFinTab = 'daily';
+        let currentSlowType = 'week';
         let html5QrCode = null;
         let myWeeklyChart = null;
 
@@ -1206,6 +1240,28 @@
             updateHomeBadges();
         }
 
+        // دالة رفع شعار المحل من هاتف المستخدم وتحويله إلى Base64
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                storeData.logo = e.target.result;
+                renderLogoPreview();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderLogoPreview() {
+            const previewContainer = document.getElementById('logo-preview-container');
+            if (!previewContainer) return;
+            if (storeData.logo) {
+                previewContainer.innerHTML = `<img src="${storeData.logo}" style="max-height: 60px; max-width: 140px; border-radius: 8px; border: 1px solid #ddd; padding: 2px;"> <div style="font-size:11px; color:#34c759; margin-top:2px;">✓ تم تحميل الشعار بنجاح</div>`;
+            } else {
+                previewContainer.innerHTML = '';
+            }
+        }
+
         function updateHomeBadges() {
             let lowItemsCount = inventory.filter(i => i.qty <= 5).length;
             const badge = document.getElementById('home-low-stock-badge');
@@ -1243,11 +1299,11 @@
             loadDataFromStorage();
             document.getElementById('header-store-name').innerText = storeData.name;
             document.getElementById('set-store-name').value = storeData.name;
-            if(document.getElementById('set-store-logo')) document.getElementById('set-store-logo').value = storeData.logo || '';
             if(document.getElementById('set-exchange-rate')) document.getElementById('set-exchange-rate').value = storeData.usdRate || 1500;
             document.getElementById('set-store-address').value = storeData.address;
             document.getElementById('set-store-phone').value = storeData.phone;
             document.getElementById('set-store-notes').value = storeData.notes;
+            renderLogoPreview();
             checkAuthStatus();
         };
 
@@ -1331,7 +1387,6 @@
             }
         }
 
-        // دالة عرض الأزرار السريعة للمنتجات الأكثر مبيعاً أو المتاحة في المخزن
         function renderQuickItemsBar() {
             const bar = document.getElementById('quick-items-bar');
             const section = document.getElementById('quick-items-section');
@@ -1344,7 +1399,6 @@
             }
 
             section.style.display = 'flex';
-            // عرض المنتجات المتوفرة في المخزن كأزرار سريعة
             inventory.forEach(item => {
                 bar.innerHTML += `
                     <button type="button" class="quick-item-btn" onclick="addQuickItemToCart('${item.name}')">
@@ -1355,7 +1409,6 @@
             });
         }
 
-        // دالة النقر على زر المنتج السريع وإضافته مباشرة للسلة
         function addQuickItemToCart(itemName) {
             const item = inventory.find(i => i.name.toLowerCase() === itemName.toLowerCase());
             if (!item) return;
@@ -1631,7 +1684,7 @@
                 dozenGroup.style.display = 'none';
                 custGroup.style.display = 'flex';
                 pricesContainer.classList.add('single-column');
-                renderQuickItemsBar(); // تحديث شريط الأزرار السريعة عند فتح المبيعات
+                renderQuickItemsBar();
             } else if (type === 'purchases') {
                 if (loggedUserRole === 'staff') {
                     alert('عفواً، صلاحيات الموظف لا تسمح بالدخول للمشتريات!');
@@ -1643,7 +1696,7 @@
                 dozenGroup.style.display = 'flex';
                 custGroup.style.display = 'flex';
                 pricesContainer.classList.remove('single-column');
-                document.getElementById('quick-items-section').style.display = 'none'; // إخفاء الأزرار السريعة في المشتريات
+                document.getElementById('quick-items-section').style.display = 'none';
             }
 
             currentCart = [];
@@ -1672,6 +1725,125 @@
             document.getElementById('back-btn').style.display = 'flex';
             document.getElementById('page-title').querySelector('span').innerText = 'كشف الاحتياجات وحركة البيع';
             renderNeedsList();
+            renderSlowMovingItems('week');
+        }
+
+        function renderSlowMovingItems(type) {
+            currentSlowType = type;
+            const container = document.getElementById('slow-moving-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let daysLimit = type === 'week' ? 7 : 30;
+            let limitDate = new Date();
+            limitDate.setDate(limitDate.getDate() - daysLimit);
+            let limitDateStr = limitDate.toISOString().split('T')[0];
+
+            let soldItemNames = new Set();
+            invoicesList.filter(inv => inv.type === 'sales' && inv.date >= limitDateStr).forEach(inv => {
+                if (inv.items) {
+                    inv.items.forEach(it => soldItemNames.add(it.name.trim().toLowerCase()));
+                }
+            });
+
+            let slowItems = inventory.filter(item => !soldItemNames.has(item.name.trim().toLowerCase()) && item.qty > 0);
+
+            if (slowItems.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:#8e8e93; padding:15px; font-size:12px;">ممتاز! لا توجد مواد راكدة أو قليلة الحركة خلال ${type === 'week' ? 'الأسبوع الأخير' : 'الشهر الأخير'}.</div>`;
+                return;
+            }
+
+            slowItems.forEach((item, idx) => {
+                container.innerHTML += `
+                    <div style="background:#fefce8; border:1px solid #fde047; border-radius:12px; padding:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <b style="font-size:13px; color:#713f12;">#${idx+1} ${item.name}</b>
+                            <span style="font-size:11px; color:#a16207;">الباركود: ${item.barcode || 'غير محدد'} | السعر: ${item.sell.toLocaleString()} د.ع</span>
+                        </div>
+                        <span style="background:#fef08a; color:#854d0e; padding:4px 8px; border-radius:8px; font-size:11px; font-weight:bold;">المتوفر: ${item.qty} قطعة</span>
+                    </div>
+                `;
+            });
+        }
+
+        function getSlowMovingReportHTML() {
+            let daysLimit = currentSlowType === 'week' ? 7 : 30;
+            let limitDate = new Date();
+            limitDate.setDate(limitDate.getDate() - daysLimit);
+            let limitDateStr = limitDate.toISOString().split('T')[0];
+
+            let soldItemNames = new Set();
+            invoicesList.filter(inv => inv.type === 'sales' && inv.date >= limitDateStr).forEach(inv => {
+                if (inv.items) {
+                    inv.items.forEach(it => soldItemNames.add(it.name.trim().toLowerCase()));
+                }
+            });
+
+            let slowItems = inventory.filter(item => !soldItemNames.has(item.name.trim().toLowerCase()) && item.qty > 0);
+
+            let rowsHtml = slowItems.map((it, i) => `
+                <tr>
+                    <td style="padding:8px; border-bottom:1px solid #ddd;">${i+1}</td>
+                    <td style="padding:8px; border-bottom:1px solid #ddd;">${it.name}</td>
+                    <td style="padding:8px; border-bottom:1px solid #ddd;">${it.barcode || '-'}</td>
+                    <td style="padding:8px; border-bottom:1px solid #ddd; text-align:center;"><b>${it.qty}</b></td>
+                    <td style="padding:8px; border-bottom:1px solid #ddd;">${it.sell.toLocaleString()} د.ع</td>
+                </tr>
+            `).join('');
+
+            return `
+                <div id="printable-slow-report" style="padding:10px; font-family:Cairo, sans-serif;">
+                    <div style="text-align:center; border-bottom:2px dashed #000; padding-bottom:8px; margin-bottom:10px;">
+                        <h3 style="font-size:17px; font-weight:bold;">${storeData.name}</h3>
+                        <div style="font-size:13px; font-weight:bold;">تقرير المواد قليلة الحركة (الراكدة) - ${currentSlowType === 'week' ? 'أسبوعي' : 'شهري'}</div>
+                        <div style="font-size:11px;">تاريخ الإصدار: ${getFormattedTodayDate()} | الفترة: آخر ${daysLimit} يوم</div>
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:12px; text-align:right;">
+                        <thead>
+                            <tr style="background:#f3f4f6;">
+                                <th style="padding:8px;">ت</th>
+                                <th style="padding:8px;">اسم المادة</th>
+                                <th style="padding:8px;">الباركود</th>
+                                <th style="padding:8px; text-align:center;">الرصيد</th>
+                                <th style="padding:8px;">سعر البيع</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml || '<tr><td colspan="5" style="text-align:center; padding:15px;">لا توجد مواد راكدة في هذه الفترة</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function printSlowMovingReport() {
+            let html = getSlowMovingReportHTML();
+            document.getElementById('modal-body').innerHTML = `
+                ${html}
+                <div class="no-print" style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="btn-save" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة التقرير</button>
+                    <button class="btn-save" style="background:#8e8e93;" onclick="closeModal()">إغلاق</button>
+                </div>
+            `;
+            document.getElementById('app-modal').style.display = 'flex';
+        }
+
+        function exportSlowMovingPDF() {
+            let html = getSlowMovingReportHTML();
+            let tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            document.body.appendChild(tempDiv);
+
+            const opt = {
+                margin:       0.3,
+                filename:     `SlowMoving_Report_${currentSlowType}_${new Date().toISOString().split('T')[0]}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(tempDiv).save().then(() => {
+                tempDiv.remove();
+            });
         }
 
         function renderNeedsList() {
@@ -1798,12 +1970,79 @@
             hideAllScreens();
             document.getElementById('reports-screen').style.display = 'flex';
             document.getElementById('back-btn').style.display = 'flex';
-            document.getElementById('page-title').querySelector('span').innerText = 'التقارير والنمو';
-            document.getElementById('report-date-filter').value = new Date().toISOString().split('T')[0];
+            document.getElementById('page-title').querySelector('span').innerText = 'التقارير وتحليلات الأداء';
+            
+            let now = new Date();
+            let yr = now.getFullYear();
+            let mo = String(now.getMonth() + 1).padStart(2, '0');
+            document.getElementById('ai-analysis-month').value = `${yr}-${mo}`;
+            document.getElementById('report-date-filter').value = now.toISOString().split('T')[0];
+
             updateSmartDashboard();
+            renderFinancialAIAdvisor();
             renderFinancialReports(currentFinTab);
             renderReportsTab(currentRepTab);
             setTimeout(renderWeeklyChart, 150);
+        }
+
+        function renderFinancialAIAdvisor() {
+            const container = document.getElementById('ai-advisor-container');
+            const monthInput = document.getElementById('ai-analysis-month').value;
+            if (!container || !monthInput) return;
+
+            let mSales = invoicesList.filter(i => i.type === 'sales' && i.date.startsWith(monthInput)).reduce((s, i) => s + i.amount, 0);
+            let mPurchases = invoicesList.filter(i => i.type === 'purchases' && i.date.startsWith(monthInput)).reduce((s, i) => s + i.amount, 0);
+            let mExpenses = expensesList.filter(e => e.date.startsWith(monthInput)).reduce((s, e) => s + e.amount, 0);
+            
+            let netProfit = mSales - mPurchases - mExpenses;
+
+            let adviceHtml = '';
+            let statusColor = '#34c759';
+            let statusIcon = 'fa-circle-check';
+
+            if (mSales === 0 && mPurchases === 0 && mExpenses === 0) {
+                statusColor = '#8e8e93';
+                statusIcon = 'fa-circle-info';
+                adviceHtml = `<li>لا توجد حركة مالية مسجلة في شهر (${monthInput}) حتى الآن. ابدأ بإدخال المبيعات والمشتريات والمصاريف ليقوم النظام بتحليل أداء محلك بدقة.</li>`;
+            } else {
+                if (netProfit < 0) {
+                    statusColor = '#ff3b30';
+                    statusIcon = 'fa-triangle-exclamation';
+                    adviceHtml += `<li><b>⚠️ تحذير عجز مالي:</b> المصاريف والمشتريات تتجاوز إجمالي المبيعات لهذا الشهر. تجنب شراء بضاعة جديدة غير ضرورية ريثما يتم تصريف البضاعة الحالية.</li>`;
+                } else {
+                    adviceHtml += `<li><b>✓ الأداء العام ممتاز:</b> محلك يحقق أرباحاً صافية إيجابية خلال شهر (${monthInput}).</li>`;
+                }
+
+                if (mExpenses > (mSales * 0.3) && mSales > 0) {
+                    adviceHtml += `<li><b>💡 خفض المصاريف:</b> تبلغ المصاريف نسبة عالية مقارنة بالمبيعات. حاول مراجعة المصاريف اليومية وتخفيض غير الضرورية منها.</li>`;
+                }
+
+                if (mPurchases > mSales * 1.5) {
+                    adviceHtml += `<li><b>📦 تجميد سيولة:</b> حجم المشتريات كبير جداً مقارنة بالمبيعات، مما قد يؤدي لتجمد السيولة في المخزن. ركز على تصريف الموجود قبل شراء طلبيات جديدة.</li>`;
+                } else {
+                    adviceHtml += `<li><b>🎯 إدارة المشتريات:</b> حركة المشتريات متوازنة مع المبيعات، استمر في الشراء حسب حاجة قسم "الاحتياجات".</li>`;
+                }
+            }
+
+            container.innerHTML = `
+                <div style="background:#ffffff; border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:10px; border-right:5px solid ${statusColor};">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <b style="font-size:14px; color:${statusColor};"><i class="fa-solid ${statusIcon}"></i> تقرير وتحليل شهر (${monthInput})</b>
+                        <span style="font-size:12px; font-weight:bold; color:#1c1c1e;">صافي الصافي: ${netProfit.toLocaleString()} د.ع</span>
+                    </div>
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; text-align:center; background:#f8f8fa; padding:8px; border-radius:10px; font-size:12px;">
+                        <div>مبيعات: <br><b style="color:#007aff;">${mSales.toLocaleString()}</b></div>
+                        <div>مشتريات: <br><b style="color:#34c759;">${mPurchases.toLocaleString()}</b></div>
+                        <div>مصاريف: <br><b style="color:#ff9500;">${mExpenses.toLocaleString()}</b></div>
+                    </div>
+                    <div style="font-size:12px; color:#3a3a3c; line-height:1.6;">
+                        <b>مقترحات لحمايتك من الخسارة هذا الشهر:</b>
+                        <ul style="padding-right:16px; margin-top:4px; display:flex; flex-direction:column; gap:4px;">
+                            ${adviceHtml}
+                        </ul>
+                    </div>
+                </div>
+            `;
         }
 
         function renderFinancialReports(tab) {
@@ -1998,7 +2237,6 @@
 
         function saveStoreSettings() {
             storeData.name = document.getElementById('set-store-name').value;
-            storeData.logo = document.getElementById('set-store-logo') ? document.getElementById('set-store-logo').value.trim() : '';
             storeData.usdRate = parseFloat(document.getElementById('set-exchange-rate').value) || 1500;
             storeData.address = document.getElementById('set-store-address').value;
             storeData.phone = document.getElementById('set-store-phone').value;
@@ -2006,8 +2244,8 @@
 
             document.getElementById('header-store-name').innerText = storeData.name;
             saveDataToStorage();
-            logActivity('تحديث إعدادات', 'تم تعديل بيانات المتجر وسعر صرف العملة');
-            alert('تم حفظ إعدادات المتجر وسعر الصرف بنجاح!');
+            logActivity('تحديث إعدادات', 'تم تعديل بيانات المتجر، شعار المحل، وسعر صرف العملة');
+            alert('تم حفظ إعدادات المتجر والشعار بنجاح!');
         }
 
         function renderStaffList() {
@@ -2292,6 +2530,7 @@
             renderCartTable();
         }
 
+        // دالة الطباعة الاحترافية مع دعم الطباعة المتعددة (نسختين للزبون والمخزن أو المطبخ)
         function printReceiptMock() {
             if (currentCart.length === 0) {
                 alert('لا توجد مواد لطباعتها!');
@@ -2312,45 +2551,81 @@
             if (!customerName) customerName = 'عام';
             let todayFormatted = getFormattedTodayDate();
 
-            let logoHtml = storeData.logo ? `<div style="text-align:center; margin-bottom:5px;"><img src="${storeData.logo}" style="max-height:45px; max-width:140px;"></div>` : '';
+            let logoHtml = storeData.logo ? `<div style="text-align:center; margin-bottom:6px;"><img src="${storeData.logo}" style="max-height:55px; max-width:160px; object-fit:contain;"></div>` : '';
 
             let itemsHtml = currentCart.map(item => `
-                <div class="summary-row" style="font-size:13px; color:#000;">
+                <div class="summary-row" style="font-size:13px; color:#000; padding:2px 0;">
                     <span>#${item.seq} ${item.name} (×${item.qty})</span>
-                    <b>${item.total.toLocaleString()}</b>
+                    <b>${item.total.toLocaleString()} د.ع</b>
                 </div>
             `).join('');
 
-            document.getElementById('modal-body').innerHTML = `
-                <div id="printable-receipt-area">
+            // قوالب متعددة (نسخة الزبون + نسخة المخزن) لطباعتها معاً أو بشكل منفصل
+            let customerReceiptHTML = `
+                <div class="receipt-single" style="border-bottom: 2px dashed #000; padding-bottom: 12px; margin-bottom: 12px;">
+                    <div style="text-align:center; font-size:11px; font-weight:bold; margin-bottom:4px; background:#eee; padding:2px;">[ نسخة الزبون ]</div>
                     ${logoHtml}
                     <div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:8px; margin-bottom:8px;">
-                        <h3 style="font-size:17px; font-weight:bold;">${storeData.name}</h3>
-                        <div style="font-size:12px;">${storeData.address}</div>
-                        <div style="font-size:12px;">هاتف: ${storeData.phone}</div>
+                        <h3 style="font-size:16px; font-weight:bold;">${storeData.name}</h3>
+                        <div style="font-size:11px;">${storeData.address}</div>
+                        <div style="font-size:11px;">هاتف: ${storeData.phone}</div>
                     </div>
-                    <div style="font-size:12px; margin-bottom:8px;">
+                    <div style="font-size:11px; margin-bottom:8px;">
                         <div>الطرف: <b>${customerName}</b></div>
-                        <div>رقم الفاتورة: <b>#معاينة</b></div>
+                        <div>رقم الفاتورة: <b>#مبيعات-جديدة</b></div>
                         <div>الكاشير: <b>${loggedUserName}</b></div>
                         <div>التاريخ: <b>${todayFormatted}</b></div>
                     </div>
                     <hr style="border:none; border-top:1px dashed #000; margin:6px 0;">
                     <div>${itemsHtml}</div>
                     <hr style="border:none; border-top:1px dashed #000; margin:6px 0;">
-                    <div class="summary-row" style="font-size:12px; color:#000;"><span>الخصم:</span> <b>${discount.toLocaleString()} د.ع</b></div>
-                    ${taxPercent > 0 ? `<div class="summary-row" style="font-size:12px; color:#000;"><span>الضريبة (${taxPercent}%):</span> <b>+${taxAmount.toLocaleString()} د.ع</b></div>` : ''}
-                    <div class="summary-row total-row" style="font-size:14px; font-weight:bold; margin-top:5px; color:#000; border-color:#000;"><span>المجموع النهائي:</span> <b>${grandTotal.toLocaleString()} د.ع (${usdEquiv}$)</b></div>
-                    <div style="text-align:center; font-size:11px; margin-top:12px; color:#000;">
+                    <div class="summary-row" style="font-size:11px; color:#000;"><span>الخصم:</span> <b>${discount.toLocaleString()} د.ع</b></div>
+                    ${taxPercent > 0 ? `<div class="summary-row" style="font-size:11px; color:#000;"><span>الضريبة (${taxPercent}%):</span> <b>+${taxAmount.toLocaleString()} د.ع</b></div>` : ''}
+                    <div class="summary-row total-row" style="font-size:13px; font-weight:bold; margin-top:5px; color:#000; border-color:#000;"><span>المجموع النهائي:</span> <b>${grandTotal.toLocaleString()} د.ع (${usdEquiv}$)</b></div>
+                    <div style="text-align:center; font-size:10px; margin-top:10px; color:#000;">
                         ${storeData.notes}
                     </div>
                 </div>
-                <div class="no-print" style="display:flex; gap:10px; margin-top:15px;">
-                    <button class="btn-save" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة الفاتورة</button>
-                    <button class="btn-save" style="background:#8e8e93;" onclick="closeModal()">إغلاق</button>
+            `;
+
+            let warehouseReceiptHTML = `
+                <div class="receipt-single" style="page-break-before: always;">
+                    <div style="text-align:center; font-size:11px; font-weight:bold; margin-bottom:4px; background:#eee; padding:2px;">[ نسخة المخزن / التجهيز ]</div>
+                    <div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:6px; margin-bottom:6px;">
+                        <h3 style="font-size:15px; font-weight:bold;">${storeData.name} - قسم المخزن</h3>
+                        <div style="font-size:11px;">التاريخ: ${todayFormatted} | الزبون: ${customerName}</div>
+                    </div>
+                    <div style="font-size:12px;">${itemsHtml}</div>
+                    <div style="margin-top:15px; font-size:11px; text-align:center; border-top:1px dashed #000; pt:5px;">
+                        تم استلام المواد وتجهيزها من المخزن بنجاح ✓
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modal-body').innerHTML = `
+                <div id="printable-receipt-area">
+                    ${customerReceiptHTML}
+                    <div id="warehouse-copy-container" style="display:none;">
+                        ${warehouseReceiptHTML}
+                    </div>
+                </div>
+                <div class="no-print" style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn-save" onclick="executePrint(false)" style="background:#007aff; flex:1;"><i class="fa-solid fa-print"></i> طباعة نسخة الزبون فقط</button>
+                        <button class="btn-save" onclick="executePrint(true)" style="background:#af52de; flex:1;"><i class="fa-solid fa-print"></i> طباعة متعددة (زبون + مخزن)</button>
+                    </div>
+                    <button class="btn-save" style="background:#8e8e93;" onclick="closeModal()">إغلاق المعاينة</button>
                 </div>
             `;
             document.getElementById('app-modal').style.display = 'flex';
+        }
+
+        function executePrint(includeWarehouse) {
+            const warehouseCopy = document.getElementById('warehouse-copy-container');
+            if (warehouseCopy) {
+                warehouseCopy.style.display = includeWarehouse ? 'block' : 'none';
+            }
+            window.print();
         }
 
         function exportCartPDF() {
@@ -2420,6 +2695,8 @@
                 </tr>
             `).join('');
 
+            let logoHtmlModal = storeData.logo ? `<div style="text-align:center; margin-bottom:6px;"><img src="${storeData.logo}" style="max-height:55px; max-width:160px; object-fit:contain;"></div>` : '';
+
             let waText = `*${storeData.name}*\n` +
                          `فاتورة رقم: ${inv.id}\n` +
                          `الطرف: ${inv.customerName || 'عام'}\n` +
@@ -2446,12 +2723,13 @@
                         <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 20px; color:#8e8e93;" onclick="closeModal()"></i>
                     </div>
                     
+                    ${logoHtmlModal}
                     <div style="text-align:center; border-bottom:2px dashed #e5e5ea; padding-bottom:8px;">
-                        <h2 style="font-size:17px;">${storeData.name}</h2>
-                        <div style="font-size:12px; color:#555;">${storeData.address} | هاتف: ${storeData.phone}</div>
+                        <h2 style="font-size:16px; font-weight:bold;">${storeData.name}</h2>
+                        <div style="font-size:11px; color:#555;">${storeData.address} | هاتف: ${storeData.phone}</div>
                     </div>
 
-                    <div style="font-size:13px; margin:10px 0; display:flex; flex-direction:column; gap:5px;">
+                    <div style="font-size:12px; margin:10px 0; display:flex; flex-direction:column; gap:4px;">
                         <div class="summary-row"><span>الطرف:</span> <strong>${inv.customerName || 'عام'}</strong></div>
                         <div class="summary-row"><span>رقم الفاتورة:</span> <strong>${inv.id}</strong></div>
                         <div class="summary-row"><span>الكاشير:</span> <strong>${inv.cashier || 'المالك'}</strong></div>
@@ -2459,16 +2737,16 @@
                         <div class="summary-row"><span>التاريخ:</span> <strong>${inv.date}</strong></div>
                     </div>
 
-                    <h4 style="font-size:14px; margin-top:8px;">جدول المواد:</h4>
+                    <h4 style="font-size:13px; margin-top:8px;">جدول المواد:</h4>
                     <div style="overflow-x:auto;">
-                        <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:4px; text-align:right;">
+                        <table style="width:100%; border-collapse:collapse; font-size:11px; margin-top:4px; text-align:right;">
                             <thead>
                                 <tr style="background:#f8f8f8; color:#8e8e93;">
-                                    <th style="padding:8px 5px;">ت</th>
-                                    <th style="padding:8px 5px;">المادة</th>
-                                    <th style="padding:8px 5px;">العدد</th>
-                                    <th style="padding:8px 5px;">السعر</th>
-                                    <th style="padding:8px 5px;">الإجمالي</th>
+                                    <th style="padding:6px 4px;">ت</th>
+                                    <th style="padding:6px 4px;">المادة</th>
+                                    <th style="padding:6px 4px;">العدد</th>
+                                    <th style="padding:6px 4px;">السعر</th>
+                                    <th style="padding:6px 4px;">الإجمالي</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -2477,12 +2755,12 @@
                         </table>
                     </div>
 
-                    <hr style="margin:12px 0; border:0; border-top:1px solid #e5e5ea;">
+                    <hr style="margin:10px 0; border:0; border-top:1px solid #e5e5ea;">
                     <div class="summary-row"><span>الخصم:</span> <strong>${(inv.discount || 0).toLocaleString()} د.ع</strong></div>
                     ${inv.tax ? `<div class="summary-row"><span>الضريبة:</span> <strong>+${inv.tax.toLocaleString()} د.ع</strong></div>` : ''}
                     <div class="summary-row total-row"><span>المجموع الكلي:</span> <strong>${inv.amount.toLocaleString()} د.ع</strong></div>
 
-                    <div style="text-align:center; font-size:12px; margin-top:12px; color:#8e8e93;">
+                    <div style="text-align:center; font-size:11px; margin-top:10px; color:#8e8e93;">
                         ${storeData.notes}
                     </div>
                 </div>
@@ -2490,7 +2768,7 @@
                 <div class="no-print" style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
                     <div style="display:flex; gap:10px;">
                         <button class="btn-save" onclick="window.print()" style="background:#007aff; flex:1;">
-                            <i class="fa-solid fa-print"></i> طباعة
+                            <i class="fa-solid fa-print"></i> طباعة الفاتورة
                         </button>
                         <a href="${waUrl}" target="_blank" class="btn-save" style="background:#25d366; text-decoration:none; text-align:center; flex:1; display:flex; align-items:center; justify-content:center; gap:6px;">
                             <i class="fa-brands fa-whatsapp"></i> إرسال واتساب
